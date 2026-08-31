@@ -909,6 +909,18 @@
 
   .story-body p {
     margin: 0 0 1.6em;
+    /* A handful of paragraphs use long runs of full-width spaces for a
+       right-indented "signature" line (a stylistic convention borrowed from
+       handwritten compositions). On narrow viewports Chromium renders such
+       a run as a single unbreakable line rather than wrapping between the
+       spaces, which pushes the paragraph wider than the viewport and causes
+       horizontal scrolling; overflow-wrap alone does not catch this because
+       the run is whitespace, not an unbreakable "word". word-break:break-all
+       forces a wrap wherever needed as a last resort. This has no visible
+       effect on ordinary Japanese prose, which already wraps at any
+       character boundary by default. */
+    overflow-wrap: break-word;
+    word-break: break-all;
   }
 
   .story-body rt {
