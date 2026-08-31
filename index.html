@@ -262,6 +262,16 @@
     border-bottom-color: var(--accent);
   }
 
+  .profile-contact {
+    margin-top: 36px;
+    padding-top: 28px;
+    border-top: 1px solid var(--rule);
+  }
+
+  .profile-contact .hub-heading {
+    margin: 0 0 14px;
+  }
+
   /* ---------- home ---------- */
 
   .home-cta {
@@ -1279,7 +1289,6 @@
       <a href="#/updates" data-nav data-route="/updates">Updates</a>
       <a href="#/diary" data-nav data-route="/diary">Diary</a>
       <a href="#/about" data-nav data-route="/about">Profile</a>
-      <a href="#/contact" data-nav data-route="/contact">Contact</a>
     </nav>
   </aside>
 
@@ -1295,8 +1304,7 @@
             <li><a href="#/works" data-nav>Archive</a><span class="sitemap-desc">つくったもの</span></li>
             <li><a href="#/updates" data-nav>Updates</a><span class="sitemap-desc">更新履歴</span></li>
             <li><a href="#/diary" data-nav>Diary</a><span class="sitemap-desc">日記</span></li>
-            <li><a href="#/about" data-nav>Profile</a><span class="sitemap-desc">管理者について</span></li>
-            <li><a href="#/contact" data-nav>Contact</a><span class="sitemap-desc">連絡先</span></li>
+            <li><a href="#/about" data-nav>Profile</a><span class="sitemap-desc">管理者について・連絡先</span></li>
           </ul>
         </div>
 
@@ -97086,16 +97094,15 @@
     <section id="view-about" class="view" hidden>
       <p class="eyebrow ui-font">Profile</p>
       <h1 class="page-title">管理者について</h1>
-      <p class="lede ui-font">へーるしゃむと名乗っている。<br>インターネットで文字を書いて暮らしている。</p>
-    </section>
+      <p class="lede ui-font">へーるしゃむ。インターネットで文字を書いて暮らしている普通のひと。</p>
 
-    <section id="view-contact" class="view" hidden>
-      <p class="eyebrow ui-font">Contact</p>
-      <h1 class="page-title">Contact</h1>
-      <p class="lede ui-font">ご連絡は下記のいずれかからお願いします。</p>
-      <div class="contact-links">
-        <a href="#" class="contact-link ui-font" id="contact-mail-link" data-mail-user="hailsham.195547sc" data-mail-domain="gmail.com">hailsham.195547sc [at] gmail.com</a>
-        <a href="https://x.com/195547sc" target="_blank" rel="noopener noreferrer" class="contact-link ui-font">へーるしゃむ（@195547sc） on X ↗</a>
+      <div class="profile-contact">
+        <h2 class="hub-heading ui-font">Contact</h2>
+        <p class="lede ui-font">ご連絡は下記のいずれかからお願いします。</p>
+        <div class="contact-links">
+          <a href="#" class="contact-link ui-font" id="contact-mail-link" data-mail-user="hailsham.195547sc" data-mail-domain="gmail.com">hailsham.195547sc [at] gmail.com</a>
+          <a href="https://x.com/195547sc" target="_blank" rel="noopener noreferrer" class="contact-link ui-font">へーるしゃむ（@195547sc） on X ↗</a>
+        </div>
       </div>
     </section>
   </main>
@@ -97535,7 +97542,7 @@
       '/diary/2026-08-29': { id: 'view-diary-2026-08-29', nav: '/diary', entrance: false },
       '/diary/2026-08-30': { id: 'view-diary-2026-08-30', nav: '/diary', entrance: false },
       '/about': { id: 'view-about', nav: '/about', entrance: false },
-      '/contact': { id: 'view-contact', nav: '/contact', entrance: false }
+      '/contact': { id: 'view-about', nav: '/about', entrance: false }
     };
 
     var siteShell = document.getElementById('site-shell');
