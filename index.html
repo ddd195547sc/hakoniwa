@@ -13368,6 +13368,49 @@
       return hash.replace(/^#/, '');
     }
 
+    // Lazy content (.story-body / .diary-post-body) renders in Noto Serif
+    // JP by default (it's the plain <body> font, unoverridden), but the
+    // browser has no way to know that until the fetched HTML below is
+    // actually inserted into the DOM -- so without this, the font request
+    // only starts *after* the content fetch finishes, serializing two
+    // round-trips (content fragment, then a several-hundred-KB font) on
+    // every first-time chapter/diary read. This reads the real font URL
+    // straight out of the already-parsed @font-face rule (so it can never
+    // drift out of sync with the CSS, cache-busting hash included) and
+    // preloads it the moment we know lazy content is about to load, so the
+    // two requests run in parallel instead of back-to-back.
+    var _notoPreloaded = false;
+    function preloadNotoSerifFont() {
+      if (_notoPreloaded) return;
+      _notoPreloaded = true;
+      var href = null;
+      try {
+        for (var i = 0; i < document.styleSheets.length && !href; i++) {
+          var rules;
+          try { rules = document.styleSheets[i].cssRules; } catch (e) { continue; }
+          if (!rules) continue;
+          for (var j = 0; j < rules.length; j++) {
+            var r = rules[j];
+            if (r.type === CSSRule.FONT_FACE_RULE &&
+                (r.style.getPropertyValue('font-family') || '').replace(/["']/g, '').trim() === 'Noto Serif JP' &&
+                (r.style.getPropertyValue('font-weight') || '').trim() === '400') {
+              var m = /url\((['"]?)(.*?)\1\)/.exec(r.style.getPropertyValue('src'));
+              if (m) href = m[2];
+              break;
+            }
+          }
+        }
+      } catch (e) { return; }
+      if (!href) return;
+      var link = document.createElement('link');
+      link.rel = 'preload';
+      link.as = 'font';
+      link.type = 'font/woff2';
+      link.crossOrigin = 'anonymous';
+      link.href = href;
+      document.head.appendChild(link);
+    }
+
     // Fetches lazily-loaded story/diary content the first time a view
     // containing it is shown. The GitHub-Pages build (dist/index.html)
     // ships content placeholders as empty containers marked with
@@ -13375,9 +13418,11 @@
     // to keep the shipped HTML shell small; this fetches the real content
     // from dist/content/ on demand. The standalone single-file build
     // (artifact.html) never has data-content-src attributes at all, so
-    // this is simply a no-op there.
+    // this is simply a no-op there (pending.length is always 0, and
+    // preloadNotoSerifFont() is therefore never even called).
     function loadLazyContent(container) {
       var pending = container.querySelectorAll('[data-content-src]');
+      if (pending.length) preloadNotoSerifFont();
       pending.forEach(function (el) {
         var src = el.getAttribute('data-content-src');
         el.removeAttribute('data-content-src');
