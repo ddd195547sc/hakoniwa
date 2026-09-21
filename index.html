@@ -1561,6 +1561,7 @@
 <button type="button" class="list-toolbar-btn ui-font" id="archive-enter-list-btn">新着順に並べる</button>
 <button type="button" class="list-toolbar-btn ui-font" id="archive-back-to-category-btn" hidden>カテゴリ別に戻る</button>
 <button type="button" class="list-toolbar-btn ui-font" id="archive-year-dir-toggle" hidden>古い順で表示</button>
+<button type="button" class="list-toolbar-btn ui-font" id="archive-search-compact-toggle" data-compact-toggle data-compact-target="archive-search-list" hidden>コンパクト表示</button>
 </div>
 <div class="archive-search-results" id="archive-search-results" hidden>
 <p class="archive-filter-status ui-font" id="archive-filter-status" hidden></p>
@@ -15911,6 +15912,7 @@
       var enterListBtn = document.getElementById('archive-enter-list-btn');
       var backToCategoryBtn = document.getElementById('archive-back-to-category-btn');
       var yearDirToggleBtn = document.getElementById('archive-year-dir-toggle');
+      var searchCompactToggleBtn = document.getElementById('archive-search-compact-toggle');
       if (yearDirToggleBtn) {
         yearDirToggleBtn.textContent = yearSortDir === 'desc' ? '古い順で表示' : '新しい順で表示';
       }
@@ -15995,6 +15997,7 @@
           if (enterListBtn) enterListBtn.hidden = false;
           if (backToCategoryBtn) backToCategoryBtn.hidden = true;
           if (yearDirToggleBtn) yearDirToggleBtn.hidden = true;
+          if (searchCompactToggleBtn) searchCompactToggleBtn.hidden = true;
           archiveResultsList.innerHTML = '';
           archiveEmptyMsg.hidden = true;
           return;
@@ -16006,6 +16009,7 @@
         if (enterListBtn) enterListBtn.hidden = true;
         if (backToCategoryBtn) backToCategoryBtn.hidden = !noFilters;
         if (yearDirToggleBtn) yearDirToggleBtn.hidden = !!query;
+        if (searchCompactToggleBtn) searchCompactToggleBtn.hidden = false;
 
         var matches = archiveIndex.filter(function (item) {
           if (query && item.title.indexOf(query) === -1) return false;
