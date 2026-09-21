@@ -580,6 +580,10 @@
     border-bottom-color: var(--accent);
   }
 
+  .list-toolbar-btn + .list-toolbar-btn {
+    margin-left: 16px;
+  }
+
   .list-toolbar-btn.is-active {
     border-bottom-color: var(--accent);
     font-weight: 700;
@@ -1550,7 +1554,10 @@
 <div class="tag-filter-list" id="year-filter-list" hidden></div>
 </div>
 <div class="list-toolbar" id="archive-sort-toolbar">
-<button type="button" class="list-toolbar-btn ui-font" id="archive-sort-toggle">制作年順で表示</button>
+<button type="button" class="list-toolbar-btn ui-font" id="archive-enter-list-btn">新着順に並べる</button>
+<button type="button" class="list-toolbar-btn ui-font" id="archive-back-to-category-btn" hidden>カテゴリ別に戻る</button>
+<button type="button" class="list-toolbar-btn ui-font" id="archive-year-dir-toggle" hidden>古い順で表示</button>
+<button type="button" class="list-toolbar-btn ui-font" id="archive-search-compact-toggle" data-compact-toggle data-compact-target="archive-search-list" hidden>コンパクト表示</button>
 </div>
 <div class="archive-search-results" id="archive-search-results" hidden>
 <p class="archive-filter-status ui-font" id="archive-filter-status" hidden></p>
@@ -1593,6 +1600,7 @@
 <p class="eyebrow ui-font">Archive</p>
 <h1 class="page-title">長編小説</h1>
 <div class="list-toolbar">
+<button type="button" class="list-toolbar-btn ui-font" data-order-toggle data-order-target="novel-work-list">古い順で表示</button>
 <button type="button" class="list-toolbar-btn ui-font" data-compact-toggle data-compact-target="novel-work-list">コンパクト表示</button>
 </div>
 <ul class="work-list" id="novel-work-list">
@@ -11771,6 +11779,7 @@
 <h1 class="page-title">短編小説</h1>
 <p class="lede ui-font">気になるタイトルを選んでください。</p>
 <div class="list-toolbar">
+<button type="button" class="list-toolbar-btn ui-font" data-order-toggle data-order-target="short-work-list">古い順で表示</button>
 <button type="button" class="list-toolbar-btn ui-font" data-compact-toggle data-compact-target="short-work-list">コンパクト表示</button>
 </div>
 <ul class="work-list" id="short-work-list">
@@ -12415,6 +12424,7 @@
 <h1 class="page-title">中編小説</h1>
 <p class="lede ui-font">気になるタイトルを選んでください。</p>
 <div class="list-toolbar">
+<button type="button" class="list-toolbar-btn ui-font" data-order-toggle data-order-target="medium-work-list">古い順で表示</button>
 <button type="button" class="list-toolbar-btn ui-font" data-compact-toggle data-compact-target="medium-work-list">コンパクト表示</button>
 </div>
 <ul class="work-list" id="medium-work-list">
@@ -12480,6 +12490,7 @@
 <h1 class="page-title">台本形式</h1>
 <p class="lede ui-font">気になるタイトルを選んでください。</p>
 <div class="list-toolbar">
+<button type="button" class="list-toolbar-btn ui-font" data-order-toggle data-order-target="script-work-list">古い順で表示</button>
 <button type="button" class="list-toolbar-btn ui-font" data-compact-toggle data-compact-target="script-work-list">コンパクト表示</button>
 </div>
 <ul class="work-list" id="script-work-list">
@@ -15891,14 +15902,33 @@
         };
       }
 
-      // ---- sort-order toggle: recency (default DOM order) vs. production year ----
-      var sortMode = 'recent';
-      var sortToggleBtn = document.getElementById('archive-sort-toggle');
-      if (sortToggleBtn) {
-        sortToggleBtn.addEventListener('click', function () {
-          sortMode = sortMode === 'year' ? 'recent' : 'year';
-          sortToggleBtn.textContent = sortMode === 'year' ? '新着順に戻す' : '制作年順で表示';
-          sortToggleBtn.classList.toggle('is-active', sortMode === 'year');
+      // ---- list-view toggle: category-grouped browse vs. flat list (always production-year ordered) ----
+      var manualListView = false;
+      var yearSortDir = 'desc';
+      var enterListBtn = document.getElementById('archive-enter-list-btn');
+      var backToCategoryBtn = document.getElementById('archive-back-to-category-btn');
+      var yearDirToggleBtn = document.getElementById('archive-year-dir-toggle');
+      var searchCompactToggleBtn = document.getElementById('archive-search-compact-toggle');
+      if (yearDirToggleBtn) {
+        yearDirToggleBtn.textContent = yearSortDir === 'desc' ? '古い順で表示' : '新しい順で表示';
+      }
+      if (enterListBtn) {
+        enterListBtn.addEventListener('click', function () {
+          manualListView = true;
+          renderArchive();
+        });
+      }
+      if (backToCategoryBtn) {
+        backToCategoryBtn.addEventListener('click', function () {
+          manualListView = false;
+          renderArchive();
+        });
+      }
+      if (yearDirToggleBtn) {
+        yearDirToggleBtn.addEventListener('click', function () {
+          yearSortDir = yearSortDir === 'desc' ? 'asc' : 'desc';
+          yearDirToggleBtn.textContent = yearSortDir === 'desc' ? '古い順で表示' : '新しい順で表示';
+          yearDirToggleBtn.classList.toggle('is-active', yearSortDir === 'asc');
           renderArchive();
         });
       }
@@ -15954,10 +15984,16 @@
           }
         }
 
-        if (!query && !activeTagFilter && !activeSeriesFilter && !activeYearFilter && sortMode !== 'year') {
+        var noFilters = !query && !activeTagFilter && !activeSeriesFilter && !activeYearFilter;
+
+        if (noFilters && !manualListView) {
           archiveResultsWrap.hidden = true;
           archiveCategoryList.hidden = false;
           if (archiveListToolbar) archiveListToolbar.hidden = false;
+          if (enterListBtn) enterListBtn.hidden = false;
+          if (backToCategoryBtn) backToCategoryBtn.hidden = true;
+          if (yearDirToggleBtn) yearDirToggleBtn.hidden = true;
+          if (searchCompactToggleBtn) searchCompactToggleBtn.hidden = true;
           archiveResultsList.innerHTML = '';
           archiveEmptyMsg.hidden = true;
           return;
@@ -15966,6 +16002,10 @@
         archiveCategoryList.hidden = true;
         if (archiveListToolbar) archiveListToolbar.hidden = true;
         archiveResultsWrap.hidden = false;
+        if (enterListBtn) enterListBtn.hidden = true;
+        if (backToCategoryBtn) backToCategoryBtn.hidden = !noFilters;
+        if (yearDirToggleBtn) yearDirToggleBtn.hidden = !!query;
+        if (searchCompactToggleBtn) searchCompactToggleBtn.hidden = false;
 
         var matches = archiveIndex.filter(function (item) {
           if (query && item.title.indexOf(query) === -1) return false;
@@ -15982,13 +16022,14 @@
             if (aStarts !== bStarts) return aStarts - bStarts;
             return a.title.localeCompare(b.title, 'ja');
           });
-        } else if (sortMode === 'year') {
+        } else {
           matches.sort(function (a, b) {
-            if (a.yearMonth !== b.yearMonth) return a.yearMonth > b.yearMonth ? -1 : 1;
+            if (a.yearMonth !== b.yearMonth) {
+              var newerFirst = a.yearMonth > b.yearMonth ? -1 : 1;
+              return yearSortDir === 'asc' ? -newerFirst : newerFirst;
+            }
             return a.title.localeCompare(b.title, 'ja');
           });
-        } else {
-          matches.sort(function (a, b) { return a.title.localeCompare(b.title, 'ja'); });
         }
 
         archiveResultsList.innerHTML = '';
@@ -16008,7 +16049,7 @@
             badge.textContent = item.categoryLabel;
             tagsEl.insertBefore(badge, tagsEl.firstChild);
           }
-          if (sortMode === 'year' && item.year) {
+          if (!query && item.year) {
             var lengthEl = clone.querySelector('.work-length');
             if (lengthEl) lengthEl.textContent = item.year + '年　' + lengthEl.textContent;
           }
@@ -16051,6 +16092,23 @@
       btn.addEventListener('click', function () {
         var compact = target.classList.toggle('is-compact');
         btn.textContent = compact ? '通常表示' : 'コンパクト表示';
+      });
+    });
+
+    // ---- per-list order toggle: newest-first (default) vs. oldest-first ----
+    var orderToggleButtons = document.querySelectorAll('[data-order-toggle]');
+    orderToggleButtons.forEach(function (btn) {
+      var targetId = btn.getAttribute('data-order-target');
+      var target = targetId ? document.getElementById(targetId) : null;
+      if (!target) return;
+      var ascending = false;
+      btn.addEventListener('click', function () {
+        ascending = !ascending;
+        var items = Array.prototype.slice.call(target.children);
+        items.reverse();
+        items.forEach(function (li) { target.appendChild(li); });
+        btn.textContent = ascending ? '新しい順で表示' : '古い順で表示';
+        btn.classList.toggle('is-active', ascending);
       });
     });
 
