@@ -15836,7 +15836,8 @@
             tags: tags,
             seriesTags: seriesTags,
             yearMonth: yearMonth,
-            year: year
+            year: year,
+            order: archiveIndex.length
           });
         });
         var countEl = document.querySelector('[data-category-count="' + cat.id + '"]');
@@ -16102,7 +16103,8 @@
               var newerFirst = a.yearMonth > b.yearMonth ? -1 : 1;
               return yearSortDir === 'asc' ? -newerFirst : newerFirst;
             }
-            return a.title.localeCompare(b.title, 'ja');
+            var orderNewerFirst = a.order < b.order ? -1 : (a.order > b.order ? 1 : 0);
+            return yearSortDir === 'asc' ? -orderNewerFirst : orderNewerFirst;
           });
         }
 
