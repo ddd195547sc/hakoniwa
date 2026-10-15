@@ -4,6 +4,17 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>はこにわ</title>
+<script>
+  // 読者の表示設定(文字の大きさ・明暗)を、描画前に反映してちらつきを防ぐ
+  (function () {
+    try {
+      var s = JSON.parse(window.localStorage.getItem('hakoniwa:reader:v1') || '{}');
+      var scale = { s: 0.92, m: 1, l: 1.12, xl: 1.26 };
+      if (s.theme === 'light' || s.theme === 'dark') document.documentElement.setAttribute('data-theme', s.theme);
+      if (scale[s.size]) document.documentElement.style.setProperty('--reader-scale', String(scale[s.size]));
+    } catch (e) {}
+  })();
+</script>
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="icon" href="favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
@@ -896,7 +907,7 @@
 
   .diary-post-body {
     max-width: 34em;
-    font-size: 1rem;
+    font-size: calc(1rem * var(--reader-scale, 1));
     color: var(--ink-soft);
   }
 
@@ -947,13 +958,13 @@
 
   /* ---------- bookmarks (栞) ---------- */
 
-  .story-header { position: relative; }
+  .story-header,
+  .diary-post-header { position: relative; }
 
   .bm-btn {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    margin-top: 14px;
     font-family: 'Zen Kaku Gothic New', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', sans-serif;
     font-size: 0.8rem;
     color: var(--ink-soft);
@@ -974,15 +985,6 @@
   .bm-btn.is-set {
     border-color: var(--accent);
     color: var(--ink);
-  }
-
-  @media (min-width: 640px) {
-    .bm-btn {
-      position: absolute;
-      right: 0;
-      bottom: -6px;
-      margin-top: 0;
-    }
   }
 
   .bm-icon {
@@ -1178,9 +1180,115 @@
     white-space: nowrap;
   }
 
+  /* ---------- reader settings (文字・表示) ---------- */
+
+  .rd-tools {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 14px;
+  }
+
+  @media (min-width: 640px) {
+    .rd-tools {
+      position: absolute;
+      right: 0;
+      bottom: -6px;
+      margin-top: 0;
+    }
+  }
+
+  .rd-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Zen Kaku Gothic New', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', sans-serif;
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+    background: var(--paper-raised);
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    padding: 7px 16px 7px 12px;
+    cursor: pointer;
+    transition: border-color 0.15s ease, color 0.15s ease;
+  }
+
+  .rd-btn:hover,
+  .rd-btn:focus-visible,
+  .rd-btn[aria-expanded="true"] {
+    border-color: var(--accent);
+    outline: none;
+  }
+
+  .rd-btn-glyph {
+    font-size: 0.95rem;
+    letter-spacing: 0;
+    color: var(--accent);
+    line-height: 1;
+  }
+
+  .rd-panel {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 8px);
+    z-index: 20;
+    width: min(300px, calc(100vw - 32px));
+    padding: 14px 16px 16px;
+    background: var(--paper-raised);
+    border: 1px solid var(--rule);
+    border-radius: 14px;
+    box-shadow: 0 8px 24px var(--shadow);
+  }
+
+  .rd-panel[hidden] {
+    display: none;
+  }
+
+  .rd-row + .rd-row {
+    margin-top: 14px;
+  }
+
+  .rd-label {
+    font-family: 'Zen Kaku Gothic New', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', sans-serif;
+    font-size: 0.74rem;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    margin: 0 0 8px;
+  }
+
+  .rd-seg {
+    display: flex;
+    gap: 6px;
+  }
+
+  .rd-seg button {
+    flex: 1 1 0;
+    font-family: 'Zen Kaku Gothic New', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', sans-serif;
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 7px 4px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .rd-seg button:hover,
+  .rd-seg button:focus-visible {
+    border-color: var(--accent);
+    outline: none;
+  }
+
+  .rd-seg button[aria-pressed="true"] {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    color: var(--ink);
+  }
+
   .story-body {
     max-width: 34em;
-    font-size: 1rem;
+    font-size: calc(1rem * var(--reader-scale, 1));
     color: var(--ink-soft);
   }
 
@@ -16116,6 +16224,18 @@
     }
 
     var bookmarkHook = null;
+    var readerHook = null;
+
+    // 読書ページの見出し右下に並べるボタン置き場(表示設定・栞)。
+    function ensureReaderTools(header) {
+      var tools = header.querySelector('.rd-tools');
+      if (!tools) {
+        tools = document.createElement('div');
+        tools.className = 'rd-tools';
+        header.appendChild(tools);
+      }
+      return tools;
+    }
 
     function render() {
       var path = currentPath();
@@ -16149,6 +16269,7 @@
 
       window.scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
       if (bookmarkHook) bookmarkHook(path);
+      if (readerHook) readerHook(path);
     }
 
     document.addEventListener('click', function (e) {
@@ -16661,7 +16782,7 @@
         var text = document.createElement('span');
         btn.appendChild(svgIcon());
         btn.appendChild(text);
-        header.appendChild(btn);
+        ensureReaderTools(header).appendChild(btn);
 
         function refresh() {
           var cur = load(BM_KEY)[info.key];
@@ -16872,6 +16993,131 @@
           updateArchive();
         }
       };
+    })();
+
+    // ---- reader settings (文字・表示) ----
+    // 文字の大きさと明暗(自動/ライト/ダーク)を読者が選べる。選択はこのブラウザの
+    // localStorage にだけ保存する。描画前の反映は <head> の小さなスクリプトが担当。
+    (function () {
+      var KEY = 'hakoniwa:reader:v1';
+      var SCALE = { s: 0.92, m: 1, l: 1.12, xl: 1.26 };
+      var SIZES = [['s', '小'], ['m', '標準'], ['l', '大'], ['xl', '特大']];
+      var THEMES = [['auto', '自動'], ['light', 'ライト'], ['dark', 'ダーク']];
+
+      function load() {
+        try {
+          var v = JSON.parse(window.localStorage.getItem(KEY) || '{}');
+          return v && typeof v === 'object' ? v : {};
+        } catch (e) { return {}; }
+      }
+      var state = load();
+      if (!SCALE[state.size]) state.size = 'm';
+      if (state.theme !== 'light' && state.theme !== 'dark') state.theme = 'auto';
+
+      function persist() {
+        try { window.localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
+      }
+      function apply() {
+        var root = document.documentElement;
+        if (state.theme === 'auto') root.removeAttribute('data-theme');
+        else root.setAttribute('data-theme', state.theme);
+        root.style.setProperty('--reader-scale', String(SCALE[state.size]));
+      }
+
+      var panels = [];
+      function closeAll(except) {
+        panels.forEach(function (p) {
+          if (p.panel === except) return;
+          p.panel.hidden = true;
+          p.btn.setAttribute('aria-expanded', 'false');
+        });
+      }
+      document.addEventListener('click', function (e) {
+        if (!e.target.closest('.rd-tools, .rd-panel')) closeAll(null);
+      });
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') closeAll(null);
+      });
+
+      function segment(label, options, current, onPick) {
+        var row = document.createElement('div');
+        row.className = 'rd-row';
+        var lab = document.createElement('p');
+        lab.className = 'rd-label';
+        lab.textContent = label;
+        var seg = document.createElement('div');
+        seg.className = 'rd-seg';
+        options.forEach(function (o) {
+          var b = document.createElement('button');
+          b.type = 'button';
+          b.textContent = o[1];
+          b.setAttribute('data-value', o[0]);
+          b.setAttribute('aria-pressed', o[0] === current ? 'true' : 'false');
+          b.addEventListener('click', function () {
+            onPick(o[0]);
+            seg.querySelectorAll('button').forEach(function (x) {
+              x.setAttribute('aria-pressed', x === b ? 'true' : 'false');
+            });
+          });
+          seg.appendChild(b);
+        });
+        row.appendChild(lab);
+        row.appendChild(seg);
+        return row;
+      }
+
+      function build(header) {
+        var tools = ensureReaderTools(header);
+        if (tools.querySelector('.rd-btn')) return;
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'rd-btn';
+        btn.setAttribute('aria-expanded', 'false');
+        btn.setAttribute('aria-haspopup', 'true');
+        var glyph = document.createElement('span');
+        glyph.className = 'rd-btn-glyph';
+        glyph.setAttribute('aria-hidden', 'true');
+        glyph.textContent = 'Aa';
+        var text = document.createElement('span');
+        text.textContent = '文字・表示';
+        btn.appendChild(glyph);
+        btn.appendChild(text);
+
+        var panel = document.createElement('div');
+        panel.className = 'rd-panel';
+        panel.hidden = true;
+        panel.setAttribute('role', 'group');
+        panel.setAttribute('aria-label', '文字・表示の設定');
+        panel.appendChild(segment('文字の大きさ', SIZES, state.size, function (v) {
+          state.size = v; persist(); apply();
+        }));
+        panel.appendChild(segment('明るさ', THEMES, state.theme, function (v) {
+          state.theme = v; persist(); apply();
+        }));
+
+        btn.addEventListener('click', function () {
+          var open = btn.getAttribute('aria-expanded') === 'true';
+          closeAll(open ? null : panel);
+          panel.hidden = open;
+          btn.setAttribute('aria-expanded', open ? 'false' : 'true');
+        });
+
+        tools.insertBefore(btn, tools.firstChild);
+        header.appendChild(panel);
+        panels.push({ btn: btn, panel: panel });
+      }
+
+      readerHook = function (path) {
+        if (!/^\/(novel|work)\/|^\/diary\/\d{4}-\d{2}-\d{2}$/.test(path)) return;
+        var match = views[path];
+        var view = match && document.getElementById(match.id);
+        var header = view && view.querySelector('.story-header, .diary-post-header');
+        if (!header) return;
+        build(header);
+        closeAll(null);
+      };
+
+      apply();
     })();
 
     window.addEventListener('hashchange', render);
