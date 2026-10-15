@@ -933,6 +933,239 @@
     margin: 0;
   }
 
+  /* ---------- bookmarks (栞) ---------- */
+
+  .story-header { position: relative; }
+
+  .bm-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 14px;
+    font-family: 'Zen Kaku Gothic New', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', sans-serif;
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+    background: var(--paper-raised);
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    padding: 7px 16px 7px 12px;
+    cursor: pointer;
+    transition: border-color 0.15s ease, color 0.15s ease;
+  }
+
+  .bm-btn:hover,
+  .bm-btn:focus-visible {
+    border-color: var(--accent);
+    outline: none;
+  }
+
+  .bm-btn.is-set {
+    border-color: var(--accent);
+    color: var(--ink);
+  }
+
+  @media (min-width: 640px) {
+    .bm-btn {
+      position: absolute;
+      right: 0;
+      bottom: -6px;
+      margin-top: 0;
+    }
+  }
+
+  .bm-icon {
+    display: block;
+    width: 13px;
+    height: 20px;
+    flex-shrink: 0;
+  }
+
+  .bm-icon path {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 1.8;
+    stroke-linejoin: round;
+  }
+
+  .is-set > .bm-icon path,
+  .bm-chip .bm-icon path,
+  .bm-card-label .bm-icon path {
+    fill: var(--accent);
+  }
+
+  .bm-toast {
+    position: fixed;
+    left: 50%;
+    bottom: 28px;
+    transform: translate(-50%, 12px);
+    background: var(--ink);
+    color: var(--paper);
+    font-family: 'Zen Kaku Gothic New', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', sans-serif;
+    font-size: 0.82rem;
+    padding: 9px 18px;
+    border-radius: 999px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    z-index: 50;
+  }
+
+  .bm-toast.is-visible {
+    opacity: 0.94;
+    transform: translate(-50%, 0);
+  }
+
+  .bm-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin: 0 0 28px;
+  }
+
+  .bm-cards[hidden] {
+    display: none;
+  }
+
+  .bm-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 14px 20px;
+    background: var(--paper-raised);
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--accent);
+    border-radius: 4px 10px 10px 4px;
+    color: var(--ink);
+  }
+
+  .bm-card-main {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .bm-card-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    color: var(--accent);
+    margin: 0 0 4px;
+  }
+
+  .bm-card-label .bm-icon {
+    width: 9px;
+    height: 14px;
+  }
+
+  .bm-card-title {
+    font-family: 'Kiwi Maru', 'Hiragino Mincho ProN', 'Yu Mincho', serif;
+    font-size: 1.02rem;
+    margin: 0;
+  }
+
+  .bm-card-sub {
+    font-size: 0.76rem;
+    color: var(--muted);
+    margin: 4px 0 0;
+  }
+
+  .bm-card-arrow {
+    color: var(--accent);
+    font-size: 1rem;
+  }
+
+  .bm-card-remove,
+  .bm-item-remove {
+    font-family: 'Zen Kaku Gothic New', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', sans-serif;
+    font-size: 0.74rem;
+    color: var(--muted);
+    background: none;
+    border: none;
+    padding: 4px 6px;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .bm-card-remove:hover,
+  .bm-card-remove:focus-visible,
+  .bm-item-remove:hover,
+  .bm-item-remove:focus-visible {
+    color: var(--accent);
+    outline: none;
+  }
+
+  .bm-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--accent);
+    font-size: 0.76rem;
+    margin-right: 12px;
+  }
+
+  .bm-chip .bm-icon {
+    width: 9px;
+    height: 14px;
+  }
+
+  .bm-list {
+    margin: 4px 0 18px;
+    border-top: 1px solid var(--rule);
+  }
+
+  .bm-list[hidden] {
+    display: none;
+  }
+
+  .bm-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .bm-item-link {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 2px 12px;
+    padding: 12px 4px;
+    text-decoration: none;
+    color: var(--ink);
+  }
+
+  .bm-item-link:hover .bm-item-title,
+  .bm-item-link:focus-visible .bm-item-title {
+    color: var(--accent);
+  }
+
+  .bm-item-title {
+    font-family: 'Kiwi Maru', 'Hiragino Mincho ProN', 'Yu Mincho', serif;
+    font-size: 0.98rem;
+  }
+
+  .bm-item-label {
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+
+  .bm-item-date {
+    font-size: 0.74rem;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
   .story-body {
     max-width: 34em;
     font-size: 1rem;
@@ -15852,6 +16085,8 @@
       });
     }
 
+    var bookmarkHook = null;
+
     function render() {
       var path = currentPath();
       var match = views[path] || views[''];
@@ -15883,6 +16118,7 @@
       });
 
       window.scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
+      if (bookmarkHook) bookmarkHook(path);
     }
 
     document.addEventListener('click', function (e) {
@@ -16291,6 +16527,322 @@
         btn.classList.toggle('is-active', ascending);
       });
     });
+
+    // ---- bookmarks (栞) ----
+    // Reader-side only: everything lives in this browser's localStorage, so
+    // nothing is sent anywhere and nothing needs the server. One bookmark
+    // per work (placing a new one moves it); the last-read page of each
+    // novel is remembered automatically for the "続きから読む" card.
+    (function () {
+      var BM_KEY = 'hakoniwa:bookmarks:v1';
+      var LR_KEY = 'hakoniwa:lastread:v1';
+      var ICON = 'M3 2 H19 V31 L11 24 L3 31 Z';
+
+      function load(key) {
+        try {
+          var v = JSON.parse(window.localStorage.getItem(key) || '{}');
+          return v && typeof v === 'object' && !Array.isArray(v) ? v : {};
+        } catch (e) { return {}; }
+      }
+      function save(key, obj) {
+        try { window.localStorage.setItem(key, JSON.stringify(obj)); return true; }
+        catch (e) { return false; }
+      }
+
+      function parsePath(path) {
+        var m = /^\/novel\/([^/]+)\/([^/]+)\/(\d+)$/.exec(path);
+        if (m) return { kind: 'novel', slug: m[1], chapter: m[2], key: 'novel/' + m[1] };
+        m = /^\/work\/([^/]+)(?:\/(\d+))?$/.exec(path);
+        if (m) return { kind: 'work', slug: m[1], chapter: null, key: 'work/' + m[1] };
+        return null;
+      }
+
+      function svgIcon() {
+        var ns = 'http://www.w3.org/2000/svg';
+        var svg = document.createElementNS(ns, 'svg');
+        svg.setAttribute('class', 'bm-icon');
+        svg.setAttribute('viewBox', '0 0 22 34');
+        svg.setAttribute('aria-hidden', 'true');
+        var p = document.createElementNS(ns, 'path');
+        p.setAttribute('d', ICON);
+        svg.appendChild(p);
+        return svg;
+      }
+
+      function two(n) { return ('0' + n).slice(-2); }
+      function shortDate(t) { var d = new Date(t); return two(d.getMonth() + 1) + '.' + two(d.getDate()); }
+      function longDate(t) { var d = new Date(t); return d.getFullYear() + '.' + two(d.getMonth() + 1) + '.' + two(d.getDate()); }
+
+      function trustedPath(path) {
+        return typeof path === 'string' && Object.prototype.hasOwnProperty.call(views, path) && !!parsePath(path);
+      }
+
+      // Title / label of the page currently on screen, read from its own header.
+      function describePage(info, view) {
+        var titleEl, title = '';
+        if (info.kind === 'novel') {
+          var toc = document.getElementById('view-novel-' + info.slug);
+          titleEl = toc && toc.querySelector('.page-title');
+        } else {
+          titleEl = view.querySelector('.story-title');
+        }
+        title = titleEl ? titleEl.textContent.trim() : '';
+        var metaEl = view.querySelector('.story-meta');
+        var parts = metaEl ? metaEl.textContent.split('・').map(function (t) { return t.trim(); }) : [];
+        var label = '';
+        if (info.kind === 'novel') {
+          label = parts.slice(0, 2).join('　');
+        } else {
+          for (var i = 0; i < parts.length; i++) {
+            if (/ページ/.test(parts[i])) { label = parts[i]; break; }
+          }
+        }
+        return { title: title, label: label };
+      }
+
+      // ---- toast ----
+      var toastEl = null, toastTimer = null;
+      function toast(msg) {
+        if (!toastEl) {
+          toastEl = document.createElement('div');
+          toastEl.className = 'bm-toast ui-font';
+          toastEl.setAttribute('role', 'status');
+          toastEl.setAttribute('aria-live', 'polite');
+          document.body.appendChild(toastEl);
+        }
+        toastEl.textContent = msg;
+        void toastEl.offsetWidth;
+        toastEl.classList.add('is-visible');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(function () { toastEl.classList.remove('is-visible'); }, 2200);
+      }
+
+      // ---- reading page: 栞をはさむ button ----
+      function updateReadingButton(path, view) {
+        var info = parsePath(path);
+        var header = view.querySelector('.story-header');
+        if (!info || !header) return;
+        var old = header.querySelector('.bm-btn');
+        if (old) old.remove();
+
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'bm-btn ui-font';
+        var text = document.createElement('span');
+        btn.appendChild(svgIcon());
+        btn.appendChild(text);
+        header.appendChild(btn);
+
+        function refresh() {
+          var cur = load(BM_KEY)[info.key];
+          var isHere = !!cur && cur.path === path;
+          btn.classList.toggle('is-set', isHere);
+          btn.setAttribute('aria-pressed', isHere ? 'true' : 'false');
+          text.textContent = isHere ? '栞をはさんでいます' : '栞をはさむ';
+          btn.title = isHere ? 'クリックで栞をはずします' : 'このページに栞をはさみます';
+        }
+        refresh();
+
+        btn.addEventListener('click', function () {
+          var all = load(BM_KEY);
+          var cur = all[info.key];
+          var msg;
+          if (cur && cur.path === path) {
+            delete all[info.key];
+            msg = '栞をはずしました';
+          } else {
+            var d = describePage(info, view);
+            msg = cur ? '栞を移しました' : '栞をはさみました';
+            all[info.key] = { path: path, title: d.title, label: d.label, at: Date.now() };
+          }
+          if (!save(BM_KEY, all)) { toast('この環境では栞を保存できません'); return; }
+          refresh();
+          toast(msg);
+        });
+      }
+
+      // ---- novel table of contents: cards + chapter chip ----
+      function makeCard(kind, rec, onRemove) {
+        var card = document.createElement(kind === 'mark' ? 'div' : 'a');
+        card.className = 'bm-card';
+        var main = card;
+        if (kind === 'mark') {
+          main = document.createElement('a');
+          main.className = 'bm-card-main';
+          card.appendChild(main);
+        } else {
+          card.className = 'bm-card bm-card-main';
+        }
+        main.setAttribute('href', '#' + rec.path);
+        main.setAttribute('data-nav', '');
+
+        var box = document.createElement('div');
+        var lab = document.createElement('p');
+        lab.className = 'bm-card-label ui-font';
+        if (kind === 'mark') lab.appendChild(svgIcon());
+        lab.appendChild(document.createTextNode(kind === 'mark' ? '栞をはさんだページ' : '続きから読む'));
+        var ttl = document.createElement('p');
+        ttl.className = 'bm-card-title';
+        ttl.textContent = rec.label || '';
+        var sub = document.createElement('p');
+        sub.className = 'bm-card-sub ui-font';
+        sub.textContent = (kind === 'mark' ? 'はさんだ日：' : '最後に読んだ日：') + longDate(rec.at);
+        box.appendChild(lab); box.appendChild(ttl); box.appendChild(sub);
+        var arrow = document.createElement('span');
+        arrow.className = 'bm-card-arrow';
+        arrow.textContent = '▸';
+        arrow.setAttribute('aria-hidden', 'true');
+        main.appendChild(box); main.appendChild(arrow);
+
+        if (kind === 'mark') {
+          var rm = document.createElement('button');
+          rm.type = 'button';
+          rm.className = 'bm-card-remove ui-font';
+          rm.textContent = '栞をはずす';
+          rm.addEventListener('click', onRemove);
+          card.appendChild(rm);
+        }
+        return card;
+      }
+
+      function updateToc(path, view) {
+        var m = /^\/novel\/([^/]+)$/.exec(path);
+        if (!m) return;
+        var key = 'novel/' + m[1];
+        var list = view.querySelector('.chapter-list');
+        if (!list) return;
+
+        var box = view.querySelector('.bm-cards');
+        if (!box) {
+          box = document.createElement('div');
+          box.className = 'bm-cards';
+          list.parentNode.insertBefore(box, list);
+        }
+        box.textContent = '';
+        view.querySelectorAll('.bm-chip').forEach(function (c) { c.remove(); });
+
+        var mark = load(BM_KEY)[key];
+        var last = load(LR_KEY)[key];
+        if (mark && !trustedPath(mark.path)) mark = null;
+        if (last && !trustedPath(last.path)) last = null;
+
+        if (mark) {
+          box.appendChild(makeCard('mark', mark, function () {
+            var all = load(BM_KEY);
+            delete all[key];
+            if (save(BM_KEY, all)) { toast('栞をはずしました'); updateToc(path, view); }
+          }));
+          var cm = /^\/novel\/[^/]+\/([^/]+)\/(\d+)$/.exec(mark.path);
+          if (cm) {
+            list.querySelectorAll('a.chapter-link').forEach(function (a) {
+              var href = a.getAttribute('href') || '';
+              if (href.indexOf('#/novel/' + m[1] + '/' + cm[1] + '/') !== 0) return;
+              var meta = a.querySelector('.chapter-meta');
+              if (!meta) return;
+              var chip = document.createElement('span');
+              chip.className = 'bm-chip';
+              chip.appendChild(svgIcon());
+              chip.appendChild(document.createTextNode(cm[2] + 'ページ'));
+              meta.insertBefore(chip, meta.firstChild);
+            });
+          }
+        }
+        if (last && !(mark && mark.path === last.path)) {
+          box.appendChild(makeCard('resume', last));
+        }
+        box.hidden = !box.firstChild;
+      }
+
+      // ---- archive: list of bookmarked pages ----
+      var archiveBuilt = false;
+      function updateArchive() {
+        var anchor = document.getElementById('year-filter');
+        if (!anchor) return;
+        var wrap = document.getElementById('bookmark-filter');
+        if (!wrap) {
+          wrap = document.createElement('div');
+          wrap.className = 'tag-filter';
+          wrap.id = 'bookmark-filter';
+          var tg = document.createElement('button');
+          tg.type = 'button';
+          tg.className = 'tag-filter-label tag-filter-toggle ui-font';
+          tg.id = 'bookmark-filter-toggle';
+          tg.setAttribute('aria-expanded', 'true');
+          tg.setAttribute('aria-controls', 'bookmark-filter-list');
+          var s1 = document.createElement('span'); s1.textContent = '栞をはさんだページ';
+          var s2 = document.createElement('span'); s2.className = 'tag-filter-arrow'; s2.textContent = '▸';
+          s2.setAttribute('aria-hidden', 'true');
+          tg.appendChild(s1); tg.appendChild(s2);
+          var ls = document.createElement('div');
+          ls.className = 'bm-list';
+          ls.id = 'bookmark-filter-list';
+          tg.addEventListener('click', function () {
+            var open = tg.getAttribute('aria-expanded') === 'true';
+            tg.setAttribute('aria-expanded', open ? 'false' : 'true');
+            ls.hidden = open;
+          });
+          wrap.appendChild(tg); wrap.appendChild(ls);
+          anchor.parentNode.insertBefore(wrap, anchor.nextSibling);
+          archiveBuilt = true;
+        }
+        var listEl = document.getElementById('bookmark-filter-list');
+        listEl.textContent = '';
+        var all = load(BM_KEY);
+        var recs = Object.keys(all).map(function (k) { return { key: k, rec: all[k] }; })
+          .filter(function (r) { return r.rec && trustedPath(r.rec.path); })
+          .sort(function (a, b) { return (b.rec.at || 0) - (a.rec.at || 0); });
+        wrap.hidden = recs.length === 0;
+        recs.forEach(function (r) {
+          var row = document.createElement('div');
+          row.className = 'bm-item ui-font';
+          var a = document.createElement('a');
+          a.className = 'bm-item-link';
+          a.setAttribute('href', '#' + r.rec.path);
+          a.setAttribute('data-nav', '');
+          var t = document.createElement('span'); t.className = 'bm-item-title'; t.textContent = r.rec.title || '';
+          var l = document.createElement('span'); l.className = 'bm-item-label'; l.textContent = r.rec.label || '';
+          var d = document.createElement('span'); d.className = 'bm-item-date'; d.textContent = shortDate(r.rec.at);
+          a.appendChild(t);
+          if (r.rec.label) a.appendChild(l);
+          a.appendChild(d);
+          var x = document.createElement('button');
+          x.type = 'button';
+          x.className = 'bm-item-remove';
+          x.textContent = '✕';
+          x.setAttribute('aria-label', (r.rec.title || '') + 'の栞をはずす');
+          x.addEventListener('click', function () {
+            var cur = load(BM_KEY);
+            delete cur[r.key];
+            if (save(BM_KEY, cur)) { toast('栞をはずしました'); updateArchive(); }
+          });
+          row.appendChild(a); row.appendChild(x);
+          listEl.appendChild(row);
+        });
+        var tgl = document.getElementById('bookmark-filter-toggle');
+        listEl.hidden = tgl.getAttribute('aria-expanded') !== 'true';
+      }
+
+      bookmarkHook = function (path) {
+        var match = views[path];
+        if (!match) return;
+        var view = document.getElementById(match.id);
+        if (!view) return;
+        var info = parsePath(path);
+        if (info) {
+          updateReadingButton(path, view);
+          if (info.kind === 'novel') {
+            var d = describePage(info, view);
+            var lr = load(LR_KEY);
+            lr[info.key] = { path: path, title: d.title, label: d.label, at: Date.now() };
+            save(LR_KEY, lr);
+          }
+        } else if (/^\/novel\/[^/]+$/.test(path)) {
+          updateToc(path, view);
+        } else if (path === '/works') {
+          updateArchive();
+        }
+      };
+    })();
 
     window.addEventListener('hashchange', render);
     document.addEventListener('DOMContentLoaded', function () {
