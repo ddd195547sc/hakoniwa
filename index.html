@@ -1435,6 +1435,39 @@
     color: inherit;
   }
 
+  .vt-content .scene-break {
+    margin-block: var(--vt-pitch, 2em);
+  }
+
+  .vt-content .vt-tcy {
+    text-combine-upright: all;
+  }
+
+  .vt-content .vt-up {
+    text-orientation: upright;
+    text-combine-upright: none;
+  }
+
+  /* 見開き: 操作用(透明)のページャの上に、表示専用の2つの窓を並べる。窓の間が中央の余白 */
+  .vt-pane {
+    display: none;
+    position: absolute;
+    top: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .vt-book.is-spread .vt-pane {
+    display: block;
+  }
+
+  .vt-book.is-spread .vt-pager {
+    position: absolute;
+    top: 0;
+    z-index: 2;
+    opacity: 0;
+  }
+
   .vt-content .vt-ttl {
     text-align: start;
     letter-spacing: 0.12em;
@@ -1445,23 +1478,6 @@
     color: var(--muted);
     font-size: 0.7em;
     letter-spacing: 0.1em;
-  }
-
-  .vt-content .vt-end {
-    text-align: start;
-    color: var(--muted);
-    font-size: 0.8em;
-    letter-spacing: 0.2em;
-  }
-
-  .vt-spine {
-    position: absolute;
-    pointer-events: none;
-    top: 0;
-    bottom: 0;
-    width: 30px;
-    margin-left: -15px;
-    background: linear-gradient(to right, transparent, var(--shadow) 50%, transparent);
   }
 
   .vt-top {
@@ -1759,6 +1775,10 @@
     font-weight: 400;
     color: var(--muted);
     letter-spacing: 0;
+  }
+
+  .story-body p.scene-break {
+    margin: 1.4em 0;
   }
 
   .kenten {
@@ -16648,6 +16668,38 @@
     // (artifact.html) never has data-content-src attributes at all, so
     // this is simply a no-op there (pending.length is always 0, and
     // preloadNotoSerifFont() is therefore never even called).
+    // 本文(.story-body)の表記の整え。横書き・縦書きの両方で使う。表示用に書き換えるだけで、
+    // 原稿のファイルや文字数は変わらない(1文字を1文字に置き換えるだけ)。
+    //  ・◇/◆だけの行(場面転換)に class="scene-break" を付ける(前後に1行ぶんの空きをCSSで入れる)
+    //  ・半角の " と “ ” を 〝 〟 に、— を ― にそろえる
+    function normalizeQuotes(p) {
+      var tw = document.createTreeWalker(p, NodeFilter.SHOW_TEXT, null, false), tn, nodes = [];
+      while ((tn = tw.nextNode())) { if (tn.parentNode.nodeName !== 'RT') nodes.push(tn); }
+      var whole = nodes.map(function (n) { return n.nodeValue; }).join('');
+      if (!/["“”\u2014]/.test(whole)) return;
+      var nq = (whole.match(/"/g) || []).length, open = true, pos = 0;
+      nodes.forEach(function (n) {
+        var v = n.nodeValue;
+        v = v.replace(/"/g, function (m, off) {
+          var at = pos + off, isOpen;
+          if (nq % 2 === 0) { isOpen = open; open = !open; }
+          else { var prev = at > 0 ? whole.charAt(at - 1) : ''; isOpen = !prev || /[\s\u3000「『（(〔［\[]/.test(prev); }
+          return isOpen ? '〝' : '〟';
+        });
+        pos += n.nodeValue.length;
+        n.nodeValue = v.replace(/“/g, '〝').replace(/”/g, '〟').replace(/\u2014/g, '\u2015');
+      });
+    }
+    function normalizeStory(container) {
+      var ps = container.querySelectorAll('p');
+      for (var i = 0; i < ps.length; i++) {
+        var p = ps[i];
+        if (/^[◇◆]+$/.test(p.textContent.replace(/[\s\u3000]/g, ''))) p.classList.add('scene-break');
+        normalizeQuotes(p);
+      }
+      container.setAttribute('data-normalized', '1');
+    }
+
     function loadLazyContent(container) {
       var pending = container.querySelectorAll('[data-content-src]');
       if (pending.length) preloadNotoSerifFont();
@@ -16661,6 +16713,7 @@
           })
           .then(function (text) {
             el.innerHTML = text;
+            if (el.classList.contains('story-body')) normalizeStory(el);
           })
           .catch(function () {
             el.innerHTML = '<p>本文の読み込みに失敗しました。ページを再読み込みしてお試しください。</p>';
@@ -17662,7 +17715,7 @@
       var cur = null;
       var isOpen = false, openPath = '', pushed = false, leave = null, openSeq = 0;
       var app = null, el = {};
-      var V = 1, P = 1, per = 1, idx = 0, viewW = 0, W = 0, snaps = [];
+      var V = 1, P = 1, per = 1, idx = 0, viewW = 0, W = 0, snaps = [], gutter = 0, pageWpx = 0;
       var bodyPs = [];
 
       function pageData(path, view, info) {
@@ -17755,9 +17808,11 @@
         el.pager = mk('div', 'vt-pager');
         el.content = mk('div', 'vt-content');
         el.pager.appendChild(el.content);
-        el.spine = mk('div', 'vt-spine');
-        el.spine.hidden = true;
-        el.book.appendChild(el.pager); el.book.appendChild(el.spine);
+        // 見開き時は、このページャを「操作用(透明)」にして、右ページ・左ページを別々の窓に映す
+        // (2ページの間に、影のない中央の余白をつくるため)
+        el.paneR = mk('div', 'vt-pane'); el.paneL = mk('div', 'vt-pane');
+        el.paneR.setAttribute('aria-hidden', 'true'); el.paneL.setAttribute('aria-hidden', 'true');
+        el.book.appendChild(el.paneR); el.book.appendChild(el.paneL); el.book.appendChild(el.pager);
         el.stage.appendChild(el.book);
 
         var foot = mk('div', 'vt-foot');
@@ -17833,17 +17888,7 @@
         function add(cls, text) { var p = mk('p', cls, text); c.appendChild(p); }
         add('vt-ttl', cur.title); add('vt-sub', cur.label); add('vt-gap', ' ');
         for (var i = 0; i < bodyPs.length; i++) c.appendChild(bodyPs[i].cloneNode(true));
-        add('vt-end', '◇　このページの終わり　◇');
-        // 1桁の数字は全角にして正立させる(2桁は縦中横、3桁以上は横倒しのまま)
-        var tw = document.createTreeWalker(c, NodeFilter.SHOW_TEXT, null, false), tn, list = [];
-        while ((tn = tw.nextNode())) {
-          if (tn.parentNode.nodeName !== 'RT' && /[0-9]/.test(tn.nodeValue)) list.push(tn);
-        }
-        list.forEach(function (n) {
-          n.nodeValue = n.nodeValue.replace(/(^|[^0-9])([0-9])(?![0-9])/g, function (m, a, d) {
-            return a + String.fromCharCode(d.charCodeAt(0) + 0xFEE0);
-          });
-        });
+        verticalize(c);
         // 縦書きでは傍点を「1文字ずつのルビ(・)」で表す
         // (標準の傍点だと行の幅が変わり、ページの区切りがずれるため)
         var ks = c.querySelectorAll('.kenten');
@@ -17859,6 +17904,91 @@
         }
         el.name.textContent = cur.title + (cur.label ? '　' + cur.label : '');
       }
+
+      // ---- 縦書き用の表記の整形(表示用のコピーだけを書き換える。原稿のファイルは変えない) ----
+      var KANJI_DIGITS = '〇一二三四五六七八九';
+      function isLatin(ch) { return !!ch && /[A-Za-z]/.test(ch); }
+      function prevNonSpace(str, i) { i--; while (i >= 0 && str.charAt(i) === ' ') i--; return i >= 0 ? str.charAt(i) : ''; }
+      function nextNonSpace(str, i) { while (i < str.length && str.charAt(i) === ' ') i++; return i < str.length ? str.charAt(i) : ''; }
+      function tcy(text) { var sp = document.createElement('span'); sp.className = 'vt-tcy'; sp.textContent = text; return sp; }
+
+      function upright(text) { var sp = document.createElement('span'); sp.className = 'vt-up'; sp.textContent = text; return sp; }
+      function toKanji(tok) { return tok.replace(/[0-9]/g, function (d) { return KANJI_DIGITS.charAt(+d); }); }
+      function toFull(ch) { return ch === '!' ? '！' : ch === '?' ? '？' : ch; }
+
+      // 1つの文字列を、通常の文字・縦中横の span・正立の span に分けて返す(変換がなければ null)
+      //   ！？ 感嘆符・疑問符      : 1字や3字以上は全角、ちょうど2字(！？ ！！ ？？ ？！)は縦中横
+      //   0.5 のような小数         : 〇・五
+      //   3桁以上の数字            : 漢数字(位取り)。ただしカタカナ・英字に続く型番(ドラッグスター250)・500ml などはそのまま
+      //   1〜2桁の数字             : 縦中横
+      //   CD・DVD など大文字の略語 : 縦中横にせず、正立で1字ずつ(全角のように)
+      function splitTokens(str) {
+        var out = [], last = 0, changed = false, m;
+        var re = /[！？!?]+|[0-9]+\.[0-9]+|[0-9]+|[A-Z]{1,3}/g;
+        while ((m = re.exec(str))) {
+          var tok = m[0], i = m.index, end = i + tok.length, node = null;
+          var before = str.charAt(i - 1), after = str.charAt(end), c0 = tok.charAt(0);
+          if (/[！？!?]/.test(c0)) {
+            if (isLatin(before) || isLatin(after)) continue;           // Yahoo! など英語の一部
+            if (tok.length === 2) node = tcy(tok.replace(/[！？]/g, function (x) { return x === '！' ? '!' : '?'; }));
+            else if (/[!?]/.test(tok)) node = document.createTextNode(tok.replace(/[!?]/g, toFull));
+            else continue;
+          } else if (/[0-9]/.test(c0)) {
+            if (isLatin(before) || isLatin(after)) continue;           // A4・MP3・500ml などは触らない
+            if (tok.indexOf('.') >= 0) node = document.createTextNode(toKanji(tok).replace('.', '・'));
+            else if (tok.length >= 3) {
+              if (/[ァ-ヶー]/.test(before)) continue;                  // ドラッグスター250 のような型番
+              node = document.createTextNode(toKanji(tok));
+            } else node = tcy(tok);
+          } else {
+            if (isLatin(before) || isLatin(after) || /['’\-]/.test(before) || /['’\-]/.test(after)) continue;
+            if (isLatin(prevNonSpace(str, i)) || isLatin(nextNonSpace(str, end))) continue; // Rin A Blanco のような名前の一部
+            node = upright(tok);
+          }
+          if (i > last) out.push(document.createTextNode(str.slice(last, i)));
+          out.push(node); last = end; changed = true;
+        }
+        if (!changed) return null;
+        if (last < str.length) out.push(document.createTextNode(str.slice(last)));
+        return out;
+      }
+
+      function verticalize(c) {
+        var ps = c.querySelectorAll('p:not(.vt-ttl):not(.vt-sub):not(.vt-gap):not(.vt-end)');
+        for (var pi = 0; pi < ps.length; pi++) {
+          var p = ps[pi];
+          // ① 場面転換(◇・◆だけの行)は、前後に1行ぶんの空きを入れる
+          if (/^[◇◆]+$/.test(p.textContent.replace(/[\s\u3000]/g, ''))) p.classList.add('scene-break');
+          var tw = document.createTreeWalker(p, NodeFilter.SHOW_TEXT, null, false), tn, nodes = [];
+          while ((tn = tw.nextNode())) { if (tn.parentNode.nodeName !== 'RT') nodes.push(tn); }
+          // ③ 引用符・括弧・記号を縦書き用の字に
+          var whole = nodes.map(function (n) { return n.nodeValue; }).join('');
+          var nq = (whole.match(/"/g) || []).length, open = true, pos = 0;
+          nodes.forEach(function (n) {
+            var v = n.nodeValue;
+            v = v.replace(/"/g, function (m, off) {
+              var at = pos + off, isOpen;
+              if (nq % 2 === 0) { isOpen = open; open = !open; }
+              else { var prev = at > 0 ? whole.charAt(at - 1) : ''; isOpen = !prev || /[\s\u3000「『（(〔［\[]/.test(prev); }
+              return isOpen ? '〝' : '〟';
+            });
+            pos += n.nodeValue.length;
+            v = v.replace(/[“]/g, '〝').replace(/[”]/g, '〟')
+                 .replace(/\(/g, '（').replace(/\)/g, '）').replace(/\[/g, '〔').replace(/\]/g, '〕')
+                 .replace(/\u2014/g, '\u2015');
+            n.nodeValue = v;
+          });
+          // ② 数字・大文字の略語(CD・DVDなど)。小文字を含む英語や章題はそのまま横倒し
+          nodes.forEach(function (n) {
+            var parts = splitTokens(n.nodeValue);
+            if (!parts) return;
+            var frag = document.createDocumentFragment();
+            parts.forEach(function (x) { frag.appendChild(x); });
+            n.parentNode.replaceChild(frag, n);
+          });
+        }
+      }
+
       function textPs() { return el.content.querySelectorAll('p:not(.vt-ttl):not(.vt-sub):not(.vt-gap):not(.vt-end)'); }
 
       // ---- 組版(ページ数の計算) ----
@@ -17872,26 +18002,48 @@
         var lhEff = hasRuby ? Math.max(+S.lh, RUBY_LH) : +S.lh, pitch = Math.round(fs * lhEff);
         el.lhHint.hidden = !(hasRuby && +S.lh < RUBY_LH);
         c.style.fontSize = fs + 'px'; c.style.lineHeight = pitch + 'px'; c.style.width = '';
+        c.style.setProperty('--vt-pitch', pitch + 'px');
         var tt = c.querySelector('.vt-ttl'); tt.style.fontSize = '1.3em'; tt.style.lineHeight = (2 * pitch) + 'px';
-        ['.vt-sub', '.vt-gap', '.vt-end'].forEach(function (s) { c.querySelector(s).style.lineHeight = pitch + 'px'; });
+        ['.vt-sub', '.vt-gap'].forEach(function (s) { c.querySelector(s).style.lineHeight = pitch + 'px'; });
         var chars = Math.max(8, Math.min(MAXC, Math.floor(ah / fs))), H = chars * fs;
-        var lines = Math.max(3, Math.min(MAXL, Math.floor((aw / per) / pitch))), pageW = lines * pitch;
-        viewW = per * pageW;
+        gutter = per === 2 ? Math.round(pitch * 1.2) : 0;
+        var lines = Math.max(3, Math.min(MAXL, Math.floor(((aw - gutter) / per) / pitch))), pageW = lines * pitch;
+        viewW = per * pageW; pageWpx = pageW;
         el.pager.style.width = viewW + 'px'; el.pager.style.height = H + 'px'; c.style.height = H + 'px';
         var w = c.getBoundingClientRect().width;
         P = Math.max(1, Math.ceil((w - 1) / pageW)); V = Math.ceil(P / per);
         W = V * viewW; c.style.width = W + 'px';
-        el.book.style.width = viewW + 'px'; el.book.style.height = H + 'px';
+        el.book.style.width = (viewW + gutter) + 'px'; el.book.style.height = H + 'px';
+        el.book.classList.toggle('is-spread', per === 2);
+        el.pager.style.left = per === 2 ? Math.round(gutter / 2) + 'px' : '';
         snaps.forEach(function (s) { if (s.parentNode) s.parentNode.removeChild(s); });
         snaps = [];
         for (var j = 0; j < V; j++) {
           var d = mk('div', 'vt-snap'); d.style.width = viewW + 'px'; d.style.left = (W - (j + 1) * viewW) + 'px';
           el.pager.appendChild(d); snaps.push(d);
         }
-        if (per === 2) { el.spine.hidden = false; el.spine.style.left = (viewW / 2) + 'px'; } else el.spine.hidden = true;
+        buildPanes(H);
         el.spreadHint.textContent = canSpread ? '2ページを見開きで並べます。' : 'いまの画面幅では1ページ表示です(約880px以上で見開き)。';
         var bs = app.querySelectorAll('.vt-seg button[data-k="spread"]');
         for (var b = 0; b < bs.length; b++) bs[b].disabled = !canSpread;
+      }
+      // 見開き用の窓(表示専用)。本文の複製を右・左の窓に入れ、操作用ページャのスクロール位置に合わせて動かす
+      function buildPanes(H) {
+        el.paneR.textContent = ''; el.paneL.textContent = '';
+        if (per !== 2) return;
+        [el.paneR, el.paneL].forEach(function (pn, k) {
+          pn.style.width = pageWpx + 'px'; pn.style.height = H + 'px';
+          pn.style.left = (k === 0 ? pageWpx + gutter : 0) + 'px';
+          var cl = el.content.cloneNode(true);
+          cl.removeAttribute('id'); cl.classList.add('vt-clone');
+          pn.appendChild(cl);
+        });
+        syncPanes();
+      }
+      function syncPanes() {
+        if (per !== 2) return;
+        var sl = el.pager.scrollLeft;
+        el.paneR.scrollLeft = sl + pageWpx; el.paneL.scrollLeft = sl;
       }
       function maxScroll() { return Math.max(0, el.pager.scrollWidth - el.pager.clientWidth); }
       function viewAt(sl) { return Math.max(0, Math.min(V - 1, Math.round((maxScroll() - sl) / viewW))); }
@@ -17899,7 +18051,7 @@
         i = Math.max(0, Math.min(V - 1, i));
         var rm = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         el.pager.scrollTo({ left: maxScroll() - i * viewW, behavior: (smooth && !rm) ? 'smooth' : 'instant' });
-        idx = i; ui();
+        idx = i; syncPanes(); ui();
       }
       function next() { if (idx >= V - 1) { toast(cur.next && !cur.nextIsToc ? '最後のページです。「次のページへ」で続きに進めます。' : '最後のページです。'); return; } go(idx + 1, true); }
       function prev() { if (idx <= 0) { toast('最初のページです。'); return; } go(idx - 1, true); }
@@ -17933,6 +18085,7 @@
         else if (act === 'next') goTo(cur.nextIsToc ? cur.toc : cur.next);
       }
       function onScroll() {
+        syncPanes();
         clearTimeout(timers.sc);
         var i = viewAt(el.pager.scrollLeft); if (i !== idx) { idx = i; ui(); }
         timers.sc = setTimeout(function () { var j = viewAt(el.pager.scrollLeft); if (j !== idx) { idx = j; ui(); } }, 120);
@@ -18194,7 +18347,7 @@
       };
 
       // 手元での動作確認用(公開ページには影響しない)
-      window.__hkVertical = { get: function () { return { V: V, P: P, per: per, idx: idx, open: isOpen, mode: S.mode }; }, go: go, curP: curP };
+      window.__hkVertical = { get: function () { return { V: V, P: P, per: per, idx: idx, open: isOpen, mode: S.mode, gutter: gutter, pageW: pageWpx }; }, go: go, curP: curP };
     })();
 
     window.addEventListener('hashchange', render);
