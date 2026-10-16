@@ -1448,6 +1448,36 @@
     text-combine-upright: none;
   }
 
+  /* ページ末尾の「次のページへ」(本文の流れの最後に置く) */
+  .vt-content .vt-nav {
+    display: block;
+    width: calc(2 * var(--vt-pitch, 2em));
+    margin-block-start: var(--vt-navgap, var(--vt-pitch, 2em));
+    margin-block-end: 0;
+  }
+
+  .vt-content .vt-nextbtn {
+    writing-mode: vertical-rl;
+    display: inline-block;
+    font: inherit;
+    font-size: 0.95em;
+    line-height: 1.4;
+    letter-spacing: 0.25em;
+    padding: 1em 0.6em;
+    color: var(--ink);
+    background: var(--paper-raised);
+    border: 1px solid var(--accent);
+    border-radius: 6px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .vt-content .vt-nextbtn:hover,
+  .vt-content .vt-nextbtn:focus-visible {
+    background: var(--accent);
+    color: var(--paper);
+  }
+
   /* 見開き: 操作用(透明)のページャの上に、表示専用の2つの窓を並べる。窓の間が中央の余白 */
   .vt-pane {
     display: none;
@@ -1459,6 +1489,14 @@
 
   .vt-book.is-spread .vt-pane {
     display: block;
+  }
+
+  .vt-book.is-spread .vt-pane {
+    z-index: 3;
+  }
+
+  .vt-book.is-spread .vt-pane .vt-nextbtn {
+    pointer-events: auto;
   }
 
   .vt-book.is-spread .vt-pager {
@@ -17902,6 +17940,13 @@
           }
           sp.parentNode.replaceChild(frag, sp);
         }
+        // ページ末尾(本文の最後の行の、さらに先)に「次のページへ」を置く
+        var navTarget = cur.nextIsToc ? cur.toc : cur.next;
+        if (navTarget) {
+          var nav = mk('div', 'vt-nav'), nbtn = btn('vt-nextbtn', cur.nextIsToc ? '目次へ' : '次のページへ');
+          nbtn.setAttribute('data-vtnav', cur.nextIsToc ? 'toc' : 'next');
+          nav.appendChild(nbtn); c.appendChild(nav);
+        }
         el.name.textContent = cur.title + (cur.label ? '　' + cur.label : '');
       }
 
@@ -18010,6 +18055,16 @@
         var lines = Math.max(3, Math.min(MAXL, Math.floor(((aw - gutter) / per) / pitch))), pageW = lines * pitch;
         viewW = per * pageW; pageWpx = pageW;
         el.pager.style.width = viewW + 'px'; el.pager.style.height = H + 'px'; c.style.height = H + 'px';
+        // 末尾の「次のページへ」が2ページにまたがらないよう、またぐ時は次のページの先頭へ送る
+        var nav = c.querySelector('.vt-nav');
+        if (nav) {
+          c.style.removeProperty('--vt-navgap');
+          var cr0 = c.getBoundingClientRect(), nr0 = nav.getBoundingClientRect();
+          var a0 = cr0.right - nr0.right, b0 = cr0.right - nr0.left;
+          if (Math.floor(a0 / pageW) !== Math.floor((b0 - 0.5) / pageW)) {
+            c.style.setProperty('--vt-navgap', (pitch + (Math.floor(a0 / pageW) + 1) * pageW - a0) + 'px');
+          }
+        }
         var w = c.getBoundingClientRect().width;
         P = Math.max(1, Math.ceil((w - 1) / pageW)); V = Math.ceil(P / per);
         W = V * viewW; c.style.width = W + 'px';
@@ -18036,6 +18091,7 @@
           pn.style.left = (k === 0 ? pageWpx + gutter : 0) + 'px';
           var cl = el.content.cloneNode(true);
           cl.removeAttribute('id'); cl.classList.add('vt-clone');
+          var cb = cl.querySelectorAll('button'); for (var q = 0; q < cb.length; q++) cb[q].tabIndex = -1;
           pn.appendChild(cl);
         });
         syncPanes();
@@ -18069,9 +18125,7 @@
         }
         el.footL.appendChild(document.createTextNode(((per === 2 && b > a) ? (a + '–' + b) : String(a)) + ' / ' + P));
         el.footR.textContent = '';
-        if (idx >= V - 1) {
-          var nb = btn('', cur.nextIsToc ? '目次へ ▸' : '次のページへ ▸'); nb.setAttribute('data-act', 'next'); el.footR.appendChild(nb);
-        } else el.footR.textContent = Math.round(Math.min(1, b / P) * 100) + '%';
+        el.footR.textContent = Math.round(Math.min(1, b / P) * 100) + '%';
         el.fill.style.transform = 'scaleX(' + ((idx + 1) / V) + ')';
         el.seek.max = Math.max(0, V - 1); el.seek.value = idx; el.seekA.textContent = String(P);
         clearTimeout(timers.save);
@@ -18181,6 +18235,8 @@
 
       // ---- 入力 ----
       function onStageClick(e) {
+        var nb = e.target.closest && e.target.closest('[data-vtnav]');
+        if (nb) { e.stopPropagation(); goTo(nb.getAttribute('data-vtnav') === 'toc' ? cur.toc : cur.next); return; }
         var sel = window.getSelection && window.getSelection().toString(); if (sel) return;
         if (app.classList.contains('is-panel')) { setPanel(false); return; }
         var r = el.stage.getBoundingClientRect(), f = (e.clientX - r.left) / r.width;
