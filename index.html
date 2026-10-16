@@ -1286,6 +1286,451 @@
     color: var(--ink);
   }
 
+  /* ---------- 縦書きリーダー(ページ送り) ---------- */
+
+  .vt-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Zen Kaku Gothic New', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', sans-serif;
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+    background: var(--paper-raised);
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    padding: 7px 16px 7px 12px;
+    cursor: pointer;
+    transition: border-color 0.15s ease, color 0.15s ease;
+  }
+
+  .vt-btn:hover,
+  .vt-btn:focus-visible {
+    border-color: var(--accent);
+    outline: none;
+  }
+
+  .vt-btn svg {
+    width: 14px;
+    height: 14px;
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 1.6;
+  }
+
+  .vt-fab {
+    position: fixed;
+    z-index: 40;
+    right: max(16px, env(safe-area-inset-right, 0px));
+    bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+    box-shadow: 0 6px 18px var(--shadow);
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(8px);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+
+  .vt-fab.is-on {
+    opacity: 1;
+    pointer-events: auto;
+    transform: none;
+  }
+
+  body.vt-lock {
+    overflow: hidden;
+  }
+
+  .vt-app {
+    --vt-font: 'Noto Serif JP', 'Hiragino Mincho ProN', 'Yu Mincho', serif;
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    background: var(--paper);
+    color: var(--ink);
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    line-height: 1.5;
+  }
+
+  .vt-app[hidden] {
+    display: none;
+  }
+
+  .vt-app button {
+    font-family: 'Zen Kaku Gothic New', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', sans-serif;
+  }
+
+  .vt-stage {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  .vt-book {
+    position: relative;
+  }
+
+  .vt-pager {
+    position: relative;
+    overflow-x: scroll;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    scroll-snap-type: x mandatory;
+    overscroll-behavior: contain;
+    touch-action: pan-x;
+  }
+
+  .vt-pager::-webkit-scrollbar {
+    display: none;
+  }
+
+  .vt-snap {
+    position: absolute;
+    top: 0;
+    height: 1px;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+    pointer-events: none;
+  }
+
+  .vt-content {
+    font-family: var(--vt-font);
+    color: var(--ink);
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    text-combine-upright: digits 2;
+    line-break: strict;
+    overflow-wrap: anywhere;
+    word-break: normal;
+    text-align: justify;
+    font-kerning: none;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .vt-content p {
+    margin: 0;
+    padding: 0;
+  }
+
+  .vt-content rt {
+    font-family: inherit;
+    font-size: 0.5em;
+    letter-spacing: 0.02em;
+    color: var(--muted);
+  }
+
+  .vt-content ruby.vt-kt rt {
+    letter-spacing: 0;
+    color: inherit;
+  }
+
+  .vt-content .vt-ttl {
+    text-align: start;
+    letter-spacing: 0.12em;
+  }
+
+  .vt-content .vt-sub {
+    text-align: start;
+    color: var(--muted);
+    font-size: 0.7em;
+    letter-spacing: 0.1em;
+  }
+
+  .vt-content .vt-end {
+    text-align: start;
+    color: var(--muted);
+    font-size: 0.8em;
+    letter-spacing: 0.2em;
+  }
+
+  .vt-spine {
+    position: absolute;
+    pointer-events: none;
+    top: 0;
+    bottom: 0;
+    width: 30px;
+    margin-left: -15px;
+    background: linear-gradient(to right, transparent, var(--shadow) 50%, transparent);
+  }
+
+  .vt-top {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: calc(env(safe-area-inset-top, 0px) + 10px) max(16px, env(safe-area-inset-right, 0px)) 10px max(16px, env(safe-area-inset-left, 0px));
+    background: var(--paper-raised);
+    border-bottom: 1px solid var(--rule);
+    transform: translateY(-110%);
+    transition: transform 0.22s ease;
+    font-size: 0.85rem;
+  }
+
+  .vt-top .vt-name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--muted);
+    font-family: 'Zen Kaku Gothic New', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', sans-serif;
+  }
+
+  .vt-chip {
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    padding: 7px 14px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .vt-chip:hover,
+  .vt-chip:focus-visible {
+    border-color: var(--accent);
+    outline: none;
+  }
+
+  .vt-foot {
+    flex: none;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    font-family: 'Zen Kaku Gothic New', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', sans-serif;
+    font-size: 0.75rem;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.06em;
+  }
+
+  .vt-foot button {
+    font-size: 0.78rem;
+    color: var(--accent);
+    background: none;
+    border: 0;
+    padding: 6px 2px;
+    cursor: pointer;
+    letter-spacing: 0.08em;
+  }
+
+  .vt-bar {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 2px;
+    background: var(--rule);
+  }
+
+  .vt-bar i {
+    display: block;
+    height: 100%;
+    background: var(--accent);
+    transform-origin: right;
+    transform: scaleX(0);
+    transition: transform 0.2s ease;
+  }
+
+  .vt-seek {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px max(16px, env(safe-area-inset-right, 0px)) calc(env(safe-area-inset-bottom, 0px) + 12px) max(16px, env(safe-area-inset-left, 0px));
+    background: var(--paper-raised);
+    border-top: 1px solid var(--rule);
+    font-family: 'Zen Kaku Gothic New', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', sans-serif;
+    font-size: 0.75rem;
+    color: var(--muted);
+    transform: translateY(110%);
+    transition: transform 0.22s ease;
+  }
+
+  .vt-seek input {
+    flex: 1;
+    min-width: 0;
+    direction: rtl;
+    accent-color: var(--accent);
+  }
+
+  .vt-app.is-chrome .vt-top,
+  .vt-app.is-chrome .vt-seek {
+    transform: none;
+  }
+
+  .vt-toast {
+    position: absolute;
+    left: 50%;
+    bottom: 70px;
+    transform: translateX(-50%);
+    z-index: 9;
+    max-width: calc(100% - 40px);
+    background: var(--ink);
+    color: var(--paper);
+    font-family: 'Zen Kaku Gothic New', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', sans-serif;
+    font-size: 0.78rem;
+    padding: 9px 16px;
+    border-radius: 999px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+  }
+
+  .vt-toast.is-on {
+    opacity: 0.94;
+  }
+
+  .vt-panel {
+    position: absolute;
+    z-index: 8;
+    right: max(16px, env(safe-area-inset-right, 0px));
+    top: 58px;
+    width: min(340px, calc(100% - 32px));
+    max-height: calc(100% - 80px);
+    overflow: auto;
+    background: var(--paper-raised);
+    border: 1px solid var(--rule);
+    border-radius: 14px;
+    padding: 6px 18px 14px;
+    box-shadow: 0 10px 30px var(--shadow);
+    font-family: 'Zen Kaku Gothic New', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', sans-serif;
+    font-size: 0.85rem;
+    cursor: default;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-6px);
+    transition: opacity 0.18s ease, transform 0.18s ease;
+  }
+
+  .vt-app.is-panel .vt-panel {
+    opacity: 1;
+    pointer-events: auto;
+    transform: none;
+  }
+
+  .vt-row {
+    display: grid;
+    grid-template-columns: 6.2em 1fr;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 0;
+    border-bottom: 1px dashed var(--rule);
+  }
+
+  .vt-row .vt-lb {
+    color: var(--muted);
+    font-size: 0.75rem;
+    letter-spacing: 0.06em;
+  }
+
+  .vt-row input[type="range"] {
+    width: 100%;
+    min-width: 0;
+    accent-color: var(--accent);
+  }
+
+  .vt-val {
+    font-size: 0.75rem;
+    font-variant-numeric: tabular-nums;
+    margin-left: 4px;
+  }
+
+  .vt-seg {
+    display: flex;
+    gap: 6px;
+  }
+
+  .vt-seg button {
+    flex: 1 1 0;
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 7px 4px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .vt-seg button:hover,
+  .vt-seg button:focus-visible {
+    border-color: var(--accent);
+    outline: none;
+  }
+
+  .vt-seg button[aria-pressed="true"] {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    color: var(--ink);
+  }
+
+  .vt-seg button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .vt-hint {
+    font-size: 0.72rem;
+    color: var(--muted);
+    margin: 4px 0 0;
+    line-height: 1.5;
+  }
+
+  .vt-reset {
+    width: 100%;
+    margin-top: 10px;
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    padding: 8px 14px;
+    cursor: pointer;
+  }
+
+  @media (max-width: 560px) {
+    .vt-panel {
+      top: auto;
+      bottom: 10px;
+      left: max(16px, env(safe-area-inset-left, 0px));
+      right: max(16px, env(safe-area-inset-right, 0px));
+      width: auto;
+      max-height: 68%;
+    }
+    .vt-row {
+      grid-template-columns: 6em 1fr;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .vt-top, .vt-seek, .vt-panel, .vt-bar i, .vt-toast, .vt-fab {
+      transition: none;
+    }
+  }
+
   .story-body {
     max-width: 34em;
     font-size: calc(1rem * var(--reader-scale, 1));
@@ -16225,6 +16670,8 @@
 
     var bookmarkHook = null;
     var readerHook = null;
+    var verticalHook = null;   // 縦書きリーダー(後段のブロックで設定)
+    var readerSettings = null; // 文字・表示の設定(明暗)を他のブロックから操作するための窓口
 
     // 読書ページの見出し右下に並べるボタン置き場(表示設定・栞)。
     function ensureReaderTools(header) {
@@ -16270,6 +16717,7 @@
       window.scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
       if (bookmarkHook) bookmarkHook(path);
       if (readerHook) readerHook(path);
+      if (verticalHook) verticalHook(path);
     }
 
     document.addEventListener('click', function (e) {
@@ -17118,6 +17566,635 @@
       };
 
       apply();
+
+      readerSettings = {
+        getTheme: function () { return state.theme; },
+        setTheme: function (v) {
+          if (v !== 'light' && v !== 'dark') v = 'auto';
+          state.theme = v; persist(); apply();
+          // 開いてある「文字・表示」パネルのボタンの選択表示もそろえる
+          document.querySelectorAll('.rd-seg button').forEach(function (b) {
+            var val = b.getAttribute('data-value');
+            if (val === 'auto' || val === 'light' || val === 'dark') {
+              b.setAttribute('aria-pressed', val === v ? 'true' : 'false');
+            }
+          });
+        }
+      };
+    })();
+
+    // ---- 縦書きリーダー (ページ送り表示) ----
+    // 読書ページ(小説・作品)に「縦書き」ボタンを足し、全画面のページ送りリーダーを開く。
+    // 横書きは従来のスクロール表示のまま。選択・位置はこのブラウザの localStorage にだけ保存する。
+    // 公開前の段階では、URLに ?vertical=1 を付けて開いたブラウザにだけボタンが出る。
+    (function () {
+      var PUBLIC = /*VERTICAL_PUBLIC_BEGIN*/false/*VERTICAL_PUBLIC_END*/;
+      var NO_VERTICAL = /*NO_VERTICAL_BEGIN*/["lily-wo-koroshita-no-wa-dare"]/*NO_VERTICAL_END*/;
+      var KEY = 'hakoniwa:vertical:v1';
+      var POS_KEY = 'hakoniwa:vpos:v1';
+      var ON_KEY = 'hakoniwa:vertical-on';
+      var MAXC = 42, MAXL = 26;
+      var RUBY_LH = 2.3; // ルビ・傍点を含むページの行間の下限(これ未満だと行が太り、ページの区切りがずれる)
+      var FONTS = {
+        serif: "'Noto Serif JP','Hiragino Mincho ProN','Yu Mincho',serif",
+        kaku: "'Zen Kaku Gothic New','Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif",
+        maru: "'Zen Maru Gothic','Hiragino Maru Gothic ProN','Yu Gothic',sans-serif"
+      };
+      var FAMS = { serif: 'Noto Serif JP', kaku: 'Zen Kaku Gothic New', maru: 'Zen Maru Gothic' };
+
+      function defaults() {
+        return { mode: 'h', size: (window.innerWidth < 600 ? 19 : 21), lh: 2.0, margin: 'm', font: 'serif', spread: '1' };
+      }
+      var S = defaults();
+      try {
+        var raw = JSON.parse(window.localStorage.getItem(KEY) || '{}');
+        if (raw && typeof raw === 'object') {
+          Object.keys(S).forEach(function (k) { if (k in raw) S[k] = raw[k]; });
+        }
+      } catch (e) {}
+      S.size = Math.max(14, Math.min(32, +S.size || 21));
+      S.lh = Math.max(1.8, Math.min(2.8, +S.lh || 2.0));
+      S.font = 'serif'; // 縦書きは明朝のみ(ゴシック・丸ゴの軽量フォントは縦書きの字形が崩れるため)
+      if (['s', 'm', 'l'].indexOf(S.margin) < 0) S.margin = 'm';
+      if (S.spread !== '0') S.spread = '1';
+      if (S.mode !== 'v') S.mode = 'h';
+      function save() { try { window.localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+
+      function gate() {
+        try {
+          var q = /[?&]vertical=(\d)/.exec(window.location.search);
+          if (q) {
+            if (q[1] === '1') window.localStorage.setItem(ON_KEY, '1');
+            else window.localStorage.removeItem(ON_KEY);
+          }
+          return window.localStorage.getItem(ON_KEY) === '1';
+        } catch (e) { return /[?&]vertical=1/.test(window.location.search); }
+      }
+      function enabled() { return PUBLIC || gate(); }
+
+      function parse(path) {
+        var m = /^\/novel\/([^/]+)\/([^/]+)\/(\d+)$/.exec(path);
+        if (m) return { kind: 'novel', slug: m[1] };
+        m = /^\/work\/([^/]+)(?:\/(\d+))?$/.exec(path);
+        if (m) return { kind: 'work', slug: m[1] };
+        return null;
+      }
+
+      // ---- 読書位置(段落番号)の記録 ----
+      function loadPos() {
+        try {
+          var v = JSON.parse(window.localStorage.getItem(POS_KEY) || '{}');
+          return v && typeof v === 'object' && !Array.isArray(v) ? v : {};
+        } catch (e) { return {}; }
+      }
+      function savePos(path, p) {
+        var all = loadPos();
+        all[path] = { p: p, at: Date.now() };
+        var keys = Object.keys(all);
+        if (keys.length > 40) {
+          keys.sort(function (a, b) { return all[a].at - all[b].at; });
+          keys.slice(0, keys.length - 40).forEach(function (k) { delete all[k]; });
+        }
+        try { window.localStorage.setItem(POS_KEY, JSON.stringify(all)); } catch (e) {}
+      }
+
+      // ---- いま表示中の読書ページ ----
+      var cur = null;
+      var isOpen = false, openPath = '', pushed = false, leave = null, openSeq = 0;
+      var app = null, el = {};
+      var V = 1, P = 1, per = 1, idx = 0, viewW = 0, W = 0, snaps = [];
+      var bodyPs = [];
+
+      function pageData(path, view, info) {
+        var title = '';
+        if (info.kind === 'novel') {
+          var toc = document.getElementById('view-novel-' + info.slug);
+          var t = toc && toc.querySelector('.page-title');
+          title = t ? t.textContent.trim() : '';
+        } else {
+          var h = view.querySelector('.story-title');
+          title = h ? h.textContent.trim() : '';
+        }
+        var metaEl = view.querySelector('.story-meta');
+        var parts = metaEl ? metaEl.textContent.split('・').map(function (s) { return s.trim(); }) : [];
+        var label = '';
+        if (info.kind === 'novel') label = parts.slice(0, 2).join('　');
+        else { for (var i = 0; i < parts.length; i++) { if (/ページ/.test(parts[i])) { label = parts[i]; break; } } }
+        var prevA = view.querySelector('.page-nav a.page-nav-prev');
+        var nextA = view.querySelector('.page-nav a.page-nav-next');
+        var tocA = view.querySelector('.page-nav a.page-nav-toc') || view.querySelector('a.back-link');
+        function hrefOf(a) { var h = a && a.getAttribute('href'); return h && h.charAt(0) === '#' ? h : null; }
+        var nextHref = hrefOf(nextA), tocHref = hrefOf(tocA);
+        return {
+          path: path, view: view, info: info, title: title, label: label,
+          prev: hrefOf(prevA), next: nextHref, toc: tocHref,
+          nextIsToc: !nextHref || nextHref === tocHref
+        };
+      }
+
+      // ---- 起動時の DOM 構築 ----
+      function mk(tag, cls, text) {
+        var n = document.createElement(tag);
+        if (cls) n.className = cls;
+        if (text != null) n.textContent = text;
+        return n;
+      }
+      function btn(cls, text, onClick) {
+        var b = mk('button', cls, text);
+        b.type = 'button';
+        if (onClick) b.addEventListener('click', onClick);
+        return b;
+      }
+      function seg(label, key, options, onPick) {
+        var row = mk('div', 'vt-row');
+        row.appendChild(mk('span', 'vt-lb', label));
+        var box = mk('div', 'vt-seg');
+        options.forEach(function (o) {
+          var b = btn('', o[1], function () { onPick(o[0]); });
+          b.setAttribute('data-k', key);
+          b.setAttribute('data-v', o[0]);
+          box.appendChild(b);
+        });
+        row.appendChild(box);
+        return row;
+      }
+      function slider(label, id, min, max, step) {
+        var row = mk('div', 'vt-row');
+        var lb = mk('label', 'vt-lb', label);
+        lb.setAttribute('for', id);
+        var box = mk('div');
+        var inp = document.createElement('input');
+        inp.type = 'range'; inp.id = id; inp.min = min; inp.max = max; inp.step = step;
+        var val = mk('span', 'vt-val');
+        box.appendChild(inp); box.appendChild(val);
+        row.appendChild(lb); row.appendChild(box);
+        return { row: row, input: inp, val: val, box: box };
+      }
+
+      function build() {
+        if (app) return;
+        app = mk('div', 'vt-app');
+        app.id = 'vt-app';
+        app.hidden = true;
+        app.setAttribute('role', 'dialog');
+        app.setAttribute('aria-modal', 'true');
+        app.setAttribute('aria-label', '縦書きで読む');
+        app.tabIndex = -1;
+
+        var top = mk('div', 'vt-top');
+        top.appendChild(btn('vt-chip', '◂ 横書きに戻す', function (e) { e.stopPropagation(); requestClose(true); }));
+        el.name = mk('span', 'vt-name');
+        top.appendChild(el.name);
+        top.appendChild(btn('vt-chip', '目次', function (e) { e.stopPropagation(); goTo(cur && cur.toc); }));
+        el.openPanel = btn('vt-chip', '表示設定', function (e) { e.stopPropagation(); setPanel(!app.classList.contains('is-panel')); });
+        el.openPanel.setAttribute('aria-expanded', 'false');
+        top.appendChild(el.openPanel);
+
+        el.stage = mk('div', 'vt-stage');
+        el.book = mk('div', 'vt-book');
+        el.pager = mk('div', 'vt-pager');
+        el.content = mk('div', 'vt-content');
+        el.pager.appendChild(el.content);
+        el.spine = mk('div', 'vt-spine');
+        el.spine.hidden = true;
+        el.book.appendChild(el.pager); el.book.appendChild(el.spine);
+        el.stage.appendChild(el.book);
+
+        var foot = mk('div', 'vt-foot');
+        el.footL = mk('span'); el.footR = mk('span');
+        foot.appendChild(el.footL); foot.appendChild(el.footR);
+        var bar = mk('div', 'vt-bar'); bar.setAttribute('aria-hidden', 'true');
+        el.fill = document.createElement('i'); bar.appendChild(el.fill);
+
+        var seek = mk('div', 'vt-seek');
+        el.seekA = mk('span');
+        el.seek = document.createElement('input');
+        el.seek.type = 'range'; el.seek.min = 0; el.seek.max = 0; el.seek.step = 1;
+        el.seek.setAttribute('aria-label', 'ページ移動');
+        seek.appendChild(el.seekA); seek.appendChild(el.seek); seek.appendChild(mk('span', '', '1'));
+
+        el.toast = mk('div', 'vt-toast'); el.toast.setAttribute('role', 'status');
+
+        var panel = mk('div', 'vt-panel');
+        panel.setAttribute('role', 'group'); panel.setAttribute('aria-label', '縦書きの表示設定');
+        el.size = slider('文字の大きさ', 'vt-size', 14, 32, 1);
+        el.lh = slider('行の間隔', 'vt-lh', 1.8, 2.8, 0.1);
+        el.lhHint = mk('p', 'vt-hint', 'ルビ・傍点のあるページでは、読みやすさのため行の間隔を自動で広げています。');
+        el.lhHint.hidden = true;
+        el.lh.box.appendChild(el.lhHint);
+        panel.appendChild(el.size.row);
+        panel.appendChild(el.lh.row);
+        panel.appendChild(seg('余白', 'margin', [['s', '狭い'], ['m', '標準'], ['l', '広い']], function (v) { change('margin', v); }));
+        panel.appendChild(seg('明るさ', 'theme', [['auto', '自動'], ['light', 'ライト'], ['dark', 'ダーク']], function (v) {
+          if (readerSettings) readerSettings.setTheme(v);
+          syncControls();
+        }));
+        var sp = seg('見開き', 'spread', [['1', 'する'], ['0', 'しない']], function (v) { change('spread', v); });
+        el.spreadHint = mk('p', 'vt-hint');
+        var spSeg = sp.querySelector('.vt-seg'), spWrap = mk('div');
+        sp.replaceChild(spWrap, spSeg); spWrap.appendChild(spSeg); spWrap.appendChild(el.spreadHint);
+        panel.appendChild(sp);
+        panel.appendChild(btn('vt-reset', '初期設定に戻す', resetSettings));
+        el.panel = panel;
+
+        app.appendChild(top); app.appendChild(el.stage); app.appendChild(foot); app.appendChild(bar);
+        app.appendChild(seek); app.appendChild(el.toast); app.appendChild(panel);
+        document.body.appendChild(app);
+
+        panel.addEventListener('click', function (e) { e.stopPropagation(); });
+        el.size.input.addEventListener('input', function () {
+          S.size = +this.value; save(); syncControls(); var a = anchor();
+          clearTimeout(timers.size); timers.size = setTimeout(function () { relayout(a); }, 60);
+        });
+        el.lh.input.addEventListener('input', function () {
+          S.lh = +this.value; save(); syncControls(); var a = anchor();
+          clearTimeout(timers.lh); timers.lh = setTimeout(function () { relayout(a); }, 60);
+        });
+        el.seek.addEventListener('input', function () { go(+this.value, false); });
+        el.pager.addEventListener('scroll', onScroll, { passive: true });
+        el.stage.addEventListener('click', onStageClick);
+        el.stage.addEventListener('wheel', onWheel, { passive: false });
+        document.addEventListener('keydown', onKey);
+        window.addEventListener('resize', function () {
+          if (!isOpen) return;
+          clearTimeout(timers.rs); timers.rs = setTimeout(function () { relayout(null); }, 150);
+        });
+        el.footL.addEventListener('click', footClick);
+        el.footR.addEventListener('click', footClick);
+      }
+      var timers = {};
+
+      // ---- 本文のコピーと縦書き用の整形 ----
+      function fillContent() {
+        var src = cur.view.querySelector('.story-body');
+        bodyPs = src ? src.querySelectorAll('p') : [];
+        var c = el.content;
+        c.innerHTML = '';
+        function add(cls, text) { var p = mk('p', cls, text); c.appendChild(p); }
+        add('vt-ttl', cur.title); add('vt-sub', cur.label); add('vt-gap', ' ');
+        for (var i = 0; i < bodyPs.length; i++) c.appendChild(bodyPs[i].cloneNode(true));
+        add('vt-end', '◇　このページの終わり　◇');
+        // 1桁の数字は全角にして正立させる(2桁は縦中横、3桁以上は横倒しのまま)
+        var tw = document.createTreeWalker(c, NodeFilter.SHOW_TEXT, null, false), tn, list = [];
+        while ((tn = tw.nextNode())) {
+          if (tn.parentNode.nodeName !== 'RT' && /[0-9]/.test(tn.nodeValue)) list.push(tn);
+        }
+        list.forEach(function (n) {
+          n.nodeValue = n.nodeValue.replace(/(^|[^0-9])([0-9])(?![0-9])/g, function (m, a, d) {
+            return a + String.fromCharCode(d.charCodeAt(0) + 0xFEE0);
+          });
+        });
+        // 縦書きでは傍点を「1文字ずつのルビ(・)」で表す
+        // (標準の傍点だと行の幅が変わり、ページの区切りがずれるため)
+        var ks = c.querySelectorAll('.kenten');
+        for (var k = 0; k < ks.length; k++) {
+          var sp = ks[k], txt = sp.textContent, frag = document.createDocumentFragment();
+          for (var j = 0; j < txt.length; j++) {
+            var ru = document.createElement('ruby'); ru.className = 'vt-kt';
+            ru.appendChild(document.createTextNode(txt.charAt(j)));
+            ru.appendChild(mk('rt', '', '・'));
+            frag.appendChild(ru);
+          }
+          sp.parentNode.replaceChild(frag, sp);
+        }
+        el.name.textContent = cur.title + (cur.label ? '　' + cur.label : '');
+      }
+      function textPs() { return el.content.querySelectorAll('p:not(.vt-ttl):not(.vt-sub):not(.vt-gap):not(.vt-end)'); }
+
+      // ---- 組版(ページ数の計算) ----
+      function layout() {
+        var sw = el.stage.clientWidth, sh = el.stage.clientHeight;
+        var mf = { s: 0.012, m: 0.04, l: 0.085 }[S.margin] || 0.04;
+        var mx = Math.max(4, Math.round(sw * mf)), my = Math.max(6, Math.round(sh * mf * 0.9));
+        var aw = sw - 2 * mx, ah = sh - 2 * my, canSpread = sw >= 880;
+        per = (S.spread === '1' && canSpread) ? 2 : 1;
+        var c = el.content, fs = +S.size, hasRuby = !!c.querySelector('rt');
+        var lhEff = hasRuby ? Math.max(+S.lh, RUBY_LH) : +S.lh, pitch = Math.round(fs * lhEff);
+        el.lhHint.hidden = !(hasRuby && +S.lh < RUBY_LH);
+        c.style.fontSize = fs + 'px'; c.style.lineHeight = pitch + 'px'; c.style.width = '';
+        var tt = c.querySelector('.vt-ttl'); tt.style.fontSize = '1.3em'; tt.style.lineHeight = (2 * pitch) + 'px';
+        ['.vt-sub', '.vt-gap', '.vt-end'].forEach(function (s) { c.querySelector(s).style.lineHeight = pitch + 'px'; });
+        var chars = Math.max(8, Math.min(MAXC, Math.floor(ah / fs))), H = chars * fs;
+        var lines = Math.max(3, Math.min(MAXL, Math.floor((aw / per) / pitch))), pageW = lines * pitch;
+        viewW = per * pageW;
+        el.pager.style.width = viewW + 'px'; el.pager.style.height = H + 'px'; c.style.height = H + 'px';
+        var w = c.getBoundingClientRect().width;
+        P = Math.max(1, Math.ceil((w - 1) / pageW)); V = Math.ceil(P / per);
+        W = V * viewW; c.style.width = W + 'px';
+        el.book.style.width = viewW + 'px'; el.book.style.height = H + 'px';
+        snaps.forEach(function (s) { if (s.parentNode) s.parentNode.removeChild(s); });
+        snaps = [];
+        for (var j = 0; j < V; j++) {
+          var d = mk('div', 'vt-snap'); d.style.width = viewW + 'px'; d.style.left = (W - (j + 1) * viewW) + 'px';
+          el.pager.appendChild(d); snaps.push(d);
+        }
+        if (per === 2) { el.spine.hidden = false; el.spine.style.left = (viewW / 2) + 'px'; } else el.spine.hidden = true;
+        el.spreadHint.textContent = canSpread ? '2ページを見開きで並べます。' : 'いまの画面幅では1ページ表示です(約880px以上で見開き)。';
+        var bs = app.querySelectorAll('.vt-seg button[data-k="spread"]');
+        for (var b = 0; b < bs.length; b++) bs[b].disabled = !canSpread;
+      }
+      function maxScroll() { return Math.max(0, el.pager.scrollWidth - el.pager.clientWidth); }
+      function viewAt(sl) { return Math.max(0, Math.min(V - 1, Math.round((maxScroll() - sl) / viewW))); }
+      function go(i, smooth) {
+        i = Math.max(0, Math.min(V - 1, i));
+        var rm = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        el.pager.scrollTo({ left: maxScroll() - i * viewW, behavior: (smooth && !rm) ? 'smooth' : 'instant' });
+        idx = i; ui();
+      }
+      function next() { if (idx >= V - 1) { toast(cur.next && !cur.nextIsToc ? '最後のページです。「次のページへ」で続きに進めます。' : '最後のページです。'); return; } go(idx + 1, true); }
+      function prev() { if (idx <= 0) { toast('最初のページです。'); return; } go(idx - 1, true); }
+      function toast(m) {
+        el.toast.textContent = m; el.toast.classList.add('is-on');
+        clearTimeout(timers.toast); timers.toast = setTimeout(function () { el.toast.classList.remove('is-on'); }, 2400);
+      }
+
+      function ui() {
+        var a = idx * per + 1, b = Math.min(P, idx * per + per);
+        el.footL.textContent = '';
+        if (idx === 0 && cur.prev) {
+          var pb = btn('', '◂ 前のページ'); pb.setAttribute('data-act', 'prev'); el.footL.appendChild(pb);
+          el.footL.appendChild(document.createTextNode('　'));
+        }
+        el.footL.appendChild(document.createTextNode(((per === 2 && b > a) ? (a + '–' + b) : String(a)) + ' / ' + P));
+        el.footR.textContent = '';
+        if (idx >= V - 1) {
+          var nb = btn('', cur.nextIsToc ? '目次へ ▸' : '次のページへ ▸'); nb.setAttribute('data-act', 'next'); el.footR.appendChild(nb);
+        } else el.footR.textContent = Math.round(Math.min(1, b / P) * 100) + '%';
+        el.fill.style.transform = 'scaleX(' + ((idx + 1) / V) + ')';
+        el.seek.max = Math.max(0, V - 1); el.seek.value = idx; el.seekA.textContent = String(P);
+        clearTimeout(timers.save);
+        timers.save = setTimeout(function () { var p = curP(); if (p != null && cur) savePos(cur.path, p); }, 300);
+      }
+      function footClick(e) {
+        var b = e.target.closest('button'); if (!b) return;
+        e.stopPropagation();
+        var act = b.getAttribute('data-act');
+        if (act === 'prev') goTo(cur.prev);
+        else if (act === 'next') goTo(cur.nextIsToc ? cur.toc : cur.next);
+      }
+      function onScroll() {
+        clearTimeout(timers.sc);
+        var i = viewAt(el.pager.scrollLeft); if (i !== idx) { idx = i; ui(); }
+        timers.sc = setTimeout(function () { var j = viewAt(el.pager.scrollLeft); if (j !== idx) { idx = j; ui(); } }, 120);
+      }
+
+      // ---- 読書位置(段落)と画面位置の対応 ----
+      function paraAtViewStart() {
+        var r = el.pager.getBoundingClientRect(), xr = r.right - 4, ps = textPs();
+        for (var i = 0; i < ps.length; i++) { if (ps[i].getBoundingClientRect().left < xr) return i; }
+        return ps.length ? ps.length - 1 : 0;
+      }
+      function anchor() {
+        var r = el.pager.getBoundingClientRect(), x = r.right - 4, y = r.top + 4, rng = null;
+        try {
+          if (document.caretRangeFromPoint) rng = document.caretRangeFromPoint(x, y);
+          else if (document.caretPositionFromPoint) {
+            var p = document.caretPositionFromPoint(x, y);
+            if (p) { rng = document.createRange(); rng.setStart(p.offsetNode, p.offset); }
+          }
+        } catch (e) {}
+        if (rng && el.content.contains(rng.startContainer) && rng.startContainer !== el.content && rng.startContainer !== el.pager) {
+          return { n: rng.startContainer, o: rng.startOffset };
+        }
+        var ps = textPs(); if (!ps.length) return null;
+        var q = ps[paraAtViewStart()]; return { n: q.firstChild || q, o: 0 };
+      }
+      function locate(a) {
+        try {
+          var t = a.n, rg = document.createRange();
+          if (t.nodeType === 3) {
+            if (!t.length) return null;
+            var o = Math.min(a.o, t.length - 1); rg.setStart(t, o); rg.setEnd(t, o + 1);
+          } else rg.selectNodeContents(t);
+          var rs = rg.getClientRects(), b = rs.length ? rs[0] : rg.getBoundingClientRect();
+          if (!b || (!b.width && !b.height)) return null;
+          var cr = el.content.getBoundingClientRect();
+          return Math.max(0, Math.min(V - 1, Math.floor((cr.right - b.right + 1) / viewW)));
+        } catch (e) { return null; }
+      }
+      function curP() { return textPs().length ? paraAtViewStart() : null; }
+      function viewOfPara(pi) {
+        var ps = textPs(), q = ps[Math.max(0, Math.min(ps.length - 1, pi))];
+        if (!q) return 0;
+        var b = q.getBoundingClientRect(), cr = el.content.getBoundingClientRect();
+        return Math.max(0, Math.min(V - 1, Math.floor((cr.right - b.right + 1) / viewW)));
+      }
+      function firstVisibleP() {
+        var ps = cur.view.querySelectorAll('.story-body p');
+        for (var i = 0; i < ps.length; i++) { if (ps[i].getBoundingClientRect().bottom > 8) return i; }
+        return 0;
+      }
+      function relayout(pre) {
+        var a = pre || anchor(), frac = V > 1 ? idx / (V - 1) : 0;
+        layout();
+        var i = a ? locate(a) : null; if (i == null) i = Math.round(frac * (V - 1));
+        go(i, false);
+      }
+
+      // ---- 設定 ----
+      function currentTheme() { return readerSettings ? readerSettings.getTheme() : 'auto'; }
+      function syncControls() {
+        var bs = app.querySelectorAll('.vt-seg button');
+        for (var i = 0; i < bs.length; i++) {
+          var k = bs[i].getAttribute('data-k'), v = bs[i].getAttribute('data-v');
+          var curv = k === 'theme' ? currentTheme() : S[k];
+          bs[i].setAttribute('aria-pressed', String(curv) === v ? 'true' : 'false');
+        }
+        el.size.input.value = S.size; el.size.val.textContent = S.size + 'px';
+        el.lh.input.value = S.lh; el.lh.val.textContent = (+S.lh).toFixed(1);
+      }
+      function applyFont(cb) {
+        app.style.setProperty('--vt-font', FONTS[S.font]);
+        if (document.fonts && document.fonts.load) {
+          document.fonts.load(S.size + "px '" + FAMS[S.font] + "'", '縦書き').then(function () { cb(); }, function () { cb(); });
+        } else cb();
+      }
+      function change(key, val) {
+        var a0 = isOpen ? anchor() : null;
+        S[key] = val; save(); syncControls();
+        if (!isOpen) return;
+        if (key === 'font') applyFont(function () { relayout(a0); }); else relayout(a0);
+      }
+      function resetSettings() {
+        var a = anchor(), m = S.mode, d = defaults();
+        d.mode = m; S = d; save(); syncControls();
+        applyFont(function () { relayout(a); });
+      }
+      function setPanel(on) {
+        app.classList.toggle('is-panel', on);
+        el.openPanel.setAttribute('aria-expanded', String(on));
+        if (on) app.classList.add('is-chrome');
+      }
+
+      // ---- 入力 ----
+      function onStageClick(e) {
+        var sel = window.getSelection && window.getSelection().toString(); if (sel) return;
+        if (app.classList.contains('is-panel')) { setPanel(false); return; }
+        var r = el.stage.getBoundingClientRect(), f = (e.clientX - r.left) / r.width;
+        if (f < 0.3) { app.classList.remove('is-chrome'); next(); }
+        else if (f > 0.7) { app.classList.remove('is-chrome'); prev(); }
+        else app.classList.toggle('is-chrome');
+      }
+      function onKey(e) {
+        if (!isOpen) return;
+        var t = e.target, k = e.key, nx = false, pv = false;
+        if (t && t.type === 'range' && (k === 'ArrowLeft' || k === 'ArrowRight' || k === 'ArrowUp' || k === 'ArrowDown')) return;
+        if (k === 'ArrowLeft' || k === 'ArrowDown' || k === 'PageDown' || (k === ' ' && !e.shiftKey)) nx = true;
+        else if (k === 'ArrowRight' || k === 'ArrowUp' || k === 'PageUp' || (k === ' ' && e.shiftKey)) pv = true;
+        else if (k === 'Home') { e.preventDefault(); go(0, true); return; }
+        else if (k === 'End') { e.preventDefault(); go(V - 1, true); return; }
+        else if (k === 'Escape') {
+          if (app.classList.contains('is-panel')) setPanel(false);
+          else if (app.classList.contains('is-chrome')) app.classList.remove('is-chrome');
+          else requestClose(true);
+          return;
+        } else return;
+        if (t && t.tagName === 'BUTTON' && (k === ' ')) return;
+        e.preventDefault(); if (nx) next(); else prev();
+      }
+      var lastWheel = 0;
+      function onWheel(e) {
+        var d = Math.abs(e.deltaY) >= Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
+        if (Math.abs(d) < 4) return; e.preventDefault();
+        var now = Date.now(); if (now - lastWheel < 380) return; lastWheel = now;
+        if (d > 0) next(); else prev();
+      }
+
+      // ---- 開く／閉じる(履歴つき) ----
+      function open(startP) {
+        if (isOpen || !cur) return;
+        build();
+        isOpen = true; openPath = cur.path;
+        fillContent();
+        app.classList.remove('is-chrome', 'is-panel');
+        app.hidden = false; document.body.classList.add('vt-lock');
+        if (el.fab) el.fab.classList.remove('is-on');
+        if (!pushed) { try { window.history.pushState({ hkv: 1 }, ''); pushed = true; } catch (e) {} }
+        syncControls();
+        var seq = ++openSeq;
+        applyFont(function () {
+          if (seq !== openSeq || !isOpen) return;
+          layout(); go(viewOfPara(startP), false);
+          try { app.focus({ preventScroll: true }); } catch (e) {}
+        });
+      }
+      function teardown(scrollBack) {
+        if (!isOpen) return;
+        var pi = curP(); if (pi == null) pi = 0;
+        if (cur) savePos(cur.path, pi);
+        isOpen = false; openSeq++;
+        app.hidden = true; app.classList.remove('is-chrome', 'is-panel');
+        document.body.classList.remove('vt-lock');
+        if (scrollBack && bodyPs.length) {
+          var q = bodyPs[Math.min(bodyPs.length - 1, pi)];
+          if (q) window.scrollTo(0, Math.max(0, q.getBoundingClientRect().top + window.pageYOffset - 20));
+        }
+        updateFab();
+      }
+      function requestClose(toHorizontal) {
+        leave = { hash: null, keepMode: !toHorizontal };
+        if (pushed) { try { window.history.back(); return; } catch (e) {} }
+        finishLeave();
+      }
+      function goTo(hash) {
+        if (!hash) return;
+        leave = { hash: hash, keepMode: true };
+        if (pushed) { try { window.history.back(); return; } catch (e) {} }
+        finishLeave();
+      }
+      function finishLeave() {
+        var l = leave || { hash: null, keepMode: false };
+        leave = null; pushed = false;
+        if (!l.keepMode) { S.mode = 'h'; save(); }
+        teardown(!l.hash);
+        if (l.hash) window.location.hash = l.hash;
+      }
+      window.addEventListener('popstate', function () {
+        if (!isOpen) { pushed = false; return; }
+        if (!pushed) return;
+        // 「戻る」で縦書きを閉じる(ボタンから閉じた場合も同じ経路を通る)
+        if (!leave) leave = { hash: null, keepMode: false };
+        finishLeave();
+      });
+
+      // ---- ボタンと自動オープン ----
+      function startFromButton() {
+        if (!cur) return;
+        S.mode = 'v'; save();
+        waitContent(function () { open(firstVisibleP()); });
+      }
+      function waitContent(fn) {
+        var seq = ++openSeq, tries = 0, path = cur.path;
+        (function wait() {
+          if (seq !== openSeq || !cur || cur.path !== path) return;
+          var body = cur.view.querySelector('.story-body');
+          if (body && body.querySelector('p') && !body.querySelector('[data-content-src]')) { fn(); return; }
+          if (++tries < 100) setTimeout(wait, 100);
+        })();
+      }
+      function ensureFab() {
+        if (el.fab) return;
+        el.fab = btn('vt-btn vt-fab', '', startFromButton);
+        el.fab.setAttribute('aria-label', '縦書きで読む');
+        el.fab.appendChild(iconSvg()); el.fab.appendChild(document.createTextNode('縦書き'));
+        document.body.appendChild(el.fab);
+      }
+      function iconSvg() {
+        var ns = 'http://www.w3.org/2000/svg', s = document.createElementNS(ns, 'svg');
+        s.setAttribute('viewBox', '0 0 16 16'); s.setAttribute('aria-hidden', 'true');
+        var p = document.createElementNS(ns, 'path'); p.setAttribute('d', 'M3 2.5h10v11H3z M9 2.5v11 M6 5.5v5');
+        s.appendChild(p); return s;
+      }
+      function updateFab() {
+        if (!el.fab) return;
+        var tb = cur && cur.view.querySelector('.vt-btn');
+        var on = !!(cur && tb && !isOpen && !cur.view.hidden && tb.getBoundingClientRect().bottom < 0);
+        el.fab.classList.toggle('is-on', on);
+      }
+      window.addEventListener('scroll', updateFab, { passive: true });
+      window.addEventListener('resize', updateFab);
+
+      function ensureButtons(view) {
+        var header = view.querySelector('.story-header');
+        if (!header) return;
+        var tools = ensureReaderTools(header);
+        if (!tools.querySelector('.vt-btn')) {
+          var b = btn('vt-btn', '', startFromButton);
+          b.appendChild(iconSvg()); b.appendChild(document.createTextNode('縦書きで読む'));
+          var aa = tools.querySelector('.rd-btn');
+          tools.insertBefore(b, aa ? aa.nextSibling : tools.firstChild);
+        }
+        // 「文字・表示」パネルにも入口を足す
+        var panel = header.querySelector('.rd-panel');
+        if (panel && !panel.querySelector('.vt-panel-row')) {
+          var row = mk('div', 'rd-row vt-panel-row');
+          row.appendChild(mk('p', 'rd-label', '縦書き'));
+          var s = mk('div', 'rd-seg');
+          var b2 = btn('', '縦書きで読む ▸', startFromButton);
+          s.appendChild(b2); row.appendChild(s); panel.appendChild(row);
+        }
+      }
+
+      verticalHook = function (path) {
+        if (isOpen) { if (openPath === path) return; pushed = false; teardown(false); }
+        var info = parse(path), match = views[path];
+        if (!info || !match || !enabled() || NO_VERTICAL.indexOf(info.slug) >= 0) {
+          cur = null; updateFab(); return;
+        }
+        var view = document.getElementById(match.id);
+        if (!view) { cur = null; return; }
+        cur = pageData(path, view, info);
+        ensureFab();
+        ensureButtons(view);
+        updateFab();
+        if (S.mode === 'v') {
+          var saved = loadPos()[path];
+          waitContent(function () { open(saved ? saved.p : 0); });
+        }
+      };
+
+      // 手元での動作確認用(公開ページには影響しない)
+      window.__hkVertical = { get: function () { return { V: V, P: P, per: per, idx: idx, open: isOpen, mode: S.mode }; }, go: go, curP: curP };
     })();
 
     window.addEventListener('hashchange', render);
