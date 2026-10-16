@@ -1933,6 +1933,25 @@
     letter-spacing: 0.24em;
   }
 
+  /* エントランスの注意書き(権利・表現についての短い案内) */
+  .entrance-notice {
+    margin: 30px auto 0;
+    max-width: 32em;
+    font-size: 0.68rem;
+    line-height: 1.95;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    text-wrap: balance;
+  }
+
+  .entrance-notice > span {
+    display: block;
+  }
+
+  .entrance-notice .nb {
+    display: inline-block;   /* 文節の途中で折り返さない */
+  }
+
   .entrance-bubbles {
     display: flex;
     justify-content: center;
@@ -2154,6 +2173,11 @@
 <h1 class="entrance-title brand-mark">はこにわ</h1>
 <img class="entrance-cover" src="images/sky_photo.jpg" alt="雲の切れ間から光が差し込み、小さく赤く滲んだ太陽が見える空の写真" />
 <a href="#/home" data-nav class="enter-link ui-font">Enter</a>
+<p class="entrance-notice ui-font">
+<span><span class="nb">ここにある文章や画像等制作物の</span><span class="nb">権利は、管理者に帰属します。</span></span>
+<span><span class="nb">作品によっては、</span><span class="nb">刺激の強い表現や、</span><span class="nb">暴力・性・グロテスクな描写を含みます。</span></span>
+<span>自己責任での閲覧をお願いします。</span>
+</p>
 <div class="entrance-bubbles">
 <span class="bubble"></span><span class="bubble"></span><span class="bubble"></span>
 </div>
