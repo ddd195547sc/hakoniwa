@@ -1448,9 +1448,12 @@
     text-combine-upright: none;
   }
 
-  /* ページ末尾の「次のページへ」(本文の流れの最後に置く) */
+  /* ページ末尾の「次のページへ」(本文の流れの最後に置く)。ボタンはページの高さの中央あたりに置く */
   .vt-content .vt-nav {
-    display: block;
+    display: flex;
+    flex-direction: row;          /* 縦書きでは「行」の向きが縦。justify-content で上下の中央にそろう */
+    justify-content: center;
+    align-items: flex-start;      /* 左右は本文の最後の行のすぐ先(右寄せ)のまま */
     width: calc(2 * var(--vt-pitch, 2em));
     margin-block-start: var(--vt-navgap, var(--vt-pitch, 2em));
     margin-block-end: 0;
@@ -1460,10 +1463,10 @@
     writing-mode: vertical-rl;
     display: inline-block;
     font: inherit;
-    font-size: 0.95em;
+    font-size: 0.8em;
     line-height: 1.4;
-    letter-spacing: 0.25em;
-    padding: 1em 0.6em;
+    letter-spacing: 0.2em;
+    padding: 0.8em 0.45em;
     color: var(--ink);
     background: var(--paper-raised);
     border: 1px solid var(--accent);
@@ -17694,7 +17697,7 @@
       var FAMS = { serif: 'Noto Serif JP', kaku: 'Zen Kaku Gothic New', maru: 'Zen Maru Gothic' };
 
       function defaults() {
-        return { mode: 'h', size: (window.innerWidth < 600 ? 19 : 21), lh: 2.0, margin: 'm', font: 'serif', spread: '1' };
+        return { mode: 'h', size: (window.innerWidth < 600 ? 19 : 21), lh: 2.0, margin: 'm', font: 'serif', spread: '0', spreadUser: 0 };
       }
       var S = defaults();
       try {
@@ -17707,7 +17710,9 @@
       S.lh = Math.max(1.8, Math.min(2.8, +S.lh || 2.0));
       S.font = 'serif'; // 縦書きは明朝のみ(ゴシック・丸ゴの軽量フォントは縦書きの字形が崩れるため)
       if (['s', 'm', 'l'].indexOf(S.margin) < 0) S.margin = 'm';
-      if (S.spread !== '0') S.spread = '1';
+      if (S.spread !== '1') S.spread = '0';
+      // 見開きは初期状態ではオフ。読者が自分で切り替えたとき(spreadUser)だけ、保存された設定を使う
+      if (!S.spreadUser) S.spread = '0';
       if (S.mode !== 'v') S.mode = 'h';
       function save() { try { window.localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
 
@@ -18109,15 +18114,32 @@
         el.pager.scrollTo({ left: maxScroll() - i * viewW, behavior: (smooth && !rm) ? 'smooth' : 'instant' });
         idx = i; syncPanes(); ui();
       }
-      function next() { if (idx >= V - 1) { toast(cur.next && !cur.nextIsToc ? '最後のページです。「次のページへ」で続きに進めます。' : '最後のページです。'); return; } go(idx + 1, true); }
+      // 最後のページで「進む」操作(矢印キー・ホイール)をしたとき: 1回目は案内、2回目で次のページ(最後なら目次)へ移る。
+      //   fresh = 新しい操作かどうか(キーの押しっぱなし・ホイールの慣性は2回目に数えない)
+      var endArmAt = 0;
+      function next(fresh) {
+        if (idx >= V - 1) {
+          var target = cur.nextIsToc ? cur.toc : cur.next, now = Date.now();
+          if (!target) { toast('最後のページです。'); return; }
+          if (endArmAt && now - endArmAt < 12000) {
+            if (fresh !== false && now - endArmAt > 450) { endArmAt = 0; goTo(target); }
+            return;
+          }
+          endArmAt = now;
+          toast('最後のページです。もう一度進む操作をすると、' + (cur.nextIsToc ? '目次へ戻ります。' : '次のページへ移ります。'), 4200);
+          return;
+        }
+        go(idx + 1, true);
+      }
       function prev() { if (idx <= 0) { toast('最初のページです。'); return; } go(idx - 1, true); }
-      function toast(m) {
+      function toast(m, ms) {
         el.toast.textContent = m; el.toast.classList.add('is-on');
-        clearTimeout(timers.toast); timers.toast = setTimeout(function () { el.toast.classList.remove('is-on'); }, 2400);
+        clearTimeout(timers.toast); timers.toast = setTimeout(function () { el.toast.classList.remove('is-on'); }, ms || 2400);
       }
 
       function ui() {
         var a = idx * per + 1, b = Math.min(P, idx * per + per);
+        if (idx < V - 1) endArmAt = 0;
         el.footL.textContent = '';
         if (idx === 0 && cur.prev) {
           var pb = btn('', '◂ 前のページ'); pb.setAttribute('data-act', 'prev'); el.footL.appendChild(pb);
@@ -18218,7 +18240,7 @@
       }
       function change(key, val) {
         var a0 = isOpen ? anchor() : null;
-        S[key] = val; save(); syncControls();
+        S[key] = val; if (key === 'spread') S.spreadUser = 1; save(); syncControls();
         if (!isOpen) return;
         if (key === 'font') applyFont(function () { relayout(a0); }); else relayout(a0);
       }
@@ -18259,21 +18281,22 @@
           return;
         } else return;
         if (t && t.tagName === 'BUTTON' && (k === ' ')) return;
-        e.preventDefault(); if (nx) next(); else prev();
+        e.preventDefault(); if (nx) next(!e.repeat); else prev();
       }
-      var lastWheel = 0;
+      var lastWheel = 0, lastWheelAny = 0;
       function onWheel(e) {
         var d = Math.abs(e.deltaY) >= Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
         if (Math.abs(d) < 4) return; e.preventDefault();
-        var now = Date.now(); if (now - lastWheel < 380) return; lastWheel = now;
-        if (d > 0) next(); else prev();
+        var now = Date.now(), quiet = now - lastWheelAny; lastWheelAny = now;   // quiet: 直前のホイール操作からの間(慣性の続きかどうかの判定)
+        if (now - lastWheel < 380) return; lastWheel = now;
+        if (d > 0) next(quiet > 220); else prev();
       }
 
       // ---- 開く／閉じる(履歴つき) ----
       function open(startP) {
         if (isOpen || !cur) return;
         build();
-        isOpen = true; openPath = cur.path;
+        isOpen = true; openPath = cur.path; endArmAt = 0;
         fillContent();
         app.classList.remove('is-chrome', 'is-panel');
         app.hidden = false; document.body.classList.add('vt-lock');
