@@ -952,6 +952,81 @@
     background: var(--paper);
   }
 
+  /* アーカイブ: 種別一覧を先頭に、検索・絞り込みはその下の1ブロックに */
+  .archive-tools {
+    margin-top: 28px;
+  }
+
+  .category-list[hidden] + .archive-tools {
+    margin-top: 8px;
+  }
+
+  .archive-tools .archive-search {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 18px;
+    margin: 0 0 12px;
+  }
+
+  .archive-tools .archive-search-input {
+    flex: 1 1 220px;
+    width: auto;
+    max-width: 320px;
+  }
+
+  .archive-tools .archive-fulltext {
+    margin: 0;
+  }
+
+  .archive-filter-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    font-family: 'Zen Kaku Gothic New', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', sans-serif;
+    font-size: 0.78rem;
+    letter-spacing: 0.04em;
+    color: var(--accent);
+    cursor: pointer;
+  }
+
+  .archive-filter-toggle:hover,
+  .archive-filter-toggle:focus-visible {
+    text-decoration: underline;
+    outline: none;
+  }
+
+  .archive-filter-chev {
+    width: 6px;
+    height: 6px;
+    border-right: 1.5px solid currentColor;
+    border-bottom: 1.5px solid currentColor;
+    transform: translateY(-2px) rotate(45deg);
+    transition: transform 0.15s ease;
+  }
+
+  .archive-filter-toggle[aria-expanded="true"] .archive-filter-chev {
+    transform: translateY(2px) rotate(-135deg);
+  }
+
+  .archive-filter-panel {
+    margin: 0 0 12px;
+    padding: 16px 16px 2px;
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    background: var(--paper-raised);
+  }
+
+  .archive-filter-panel[hidden] { display: none; }
+
+  .archive-filter-panel .tag-filter {
+    margin: 0 0 16px;
+  }
+
   .archive-search-results {
     margin-top: 4px;
   }
@@ -2848,42 +2923,6 @@
 <section id="view-works" class="view" hidden>
 <p class="eyebrow ui-font">Archive</p>
 <h1 class="page-title">Archive</h1>
-<div class="archive-search">
-<input type="search" id="archive-search-input" class="archive-search-input ui-font" placeholder="作品タイトルで検索" autocomplete="off" aria-label="作品タイトルで検索" />
-<a href="#/search" data-nav class="archive-fulltext ui-font">本文もさがす ▸</a>
-</div>
-<div class="tag-filter">
-<button type="button" class="tag-filter-label tag-filter-toggle ui-font" id="tag-filter-toggle" aria-expanded="false" aria-controls="tag-filter-list">
-<span>ジャンルで探す</span>
-<span class="tag-filter-arrow" aria-hidden="true">▸</span>
-</button>
-<div class="tag-filter-list" id="tag-filter-list" hidden></div>
-</div>
-<div class="tag-filter" id="series-filter" hidden>
-<button type="button" class="tag-filter-label tag-filter-toggle ui-font" id="series-filter-toggle" aria-expanded="false" aria-controls="series-filter-list">
-<span>シリーズで探す</span>
-<span class="tag-filter-arrow" aria-hidden="true">▸</span>
-</button>
-<div class="tag-filter-list" id="series-filter-list" hidden></div>
-</div>
-<div class="tag-filter" id="year-filter" hidden>
-<button type="button" class="tag-filter-label tag-filter-toggle ui-font" id="year-filter-toggle" aria-expanded="false" aria-controls="year-filter-list">
-<span>年代で探す</span>
-<span class="tag-filter-arrow" aria-hidden="true">▸</span>
-</button>
-<div class="tag-filter-list" id="year-filter-list" hidden></div>
-</div>
-<div class="list-toolbar" id="archive-sort-toolbar">
-<button type="button" class="list-toolbar-btn ui-font" id="archive-enter-list-btn">新着順に並べる</button>
-<button type="button" class="list-toolbar-btn ui-font" id="archive-back-to-category-btn" hidden>カテゴリ別に戻る</button>
-<button type="button" class="list-toolbar-btn ui-font" id="archive-year-dir-toggle" hidden>古い順で表示</button>
-<button type="button" class="list-toolbar-btn ui-font" id="archive-search-compact-toggle" data-compact-toggle data-compact-target="archive-search-list" hidden>コンパクト表示</button>
-</div>
-<div class="archive-search-results" id="archive-search-results" hidden>
-<p class="archive-filter-status ui-font" id="archive-filter-status" hidden></p>
-<ul class="work-list" id="archive-search-list"></ul>
-<p class="archive-search-empty ui-font" id="archive-search-empty" hidden>該当する作品が見つかりませんでした。</p>
-</div>
 <div class="list-toolbar" id="archive-list-toolbar">
 <button type="button" class="list-toolbar-btn ui-font" data-compact-toggle data-compact-target="archive-category-list">通常表示</button>
 </div>
@@ -2913,6 +2952,49 @@
 </a>
 </li>
 </ul>
+    
+
+<div class="archive-tools">
+<div class="archive-search">
+<input type="search" id="archive-search-input" class="archive-search-input ui-font" placeholder="作品タイトルで検索" autocomplete="off" aria-label="作品タイトルで検索" />
+<a href="#/search" data-nav class="archive-fulltext ui-font">本文もさがす ▸</a>
+<button type="button" class="archive-filter-toggle ui-font" id="archive-filter-toggle" aria-expanded="false" aria-controls="archive-filter-panel"><span>絞り込み</span><span class="archive-filter-chev" aria-hidden="true"></span></button>
+</div>
+<div class="archive-filter-panel" id="archive-filter-panel" hidden>
+<div class="tag-filter">
+<button type="button" class="tag-filter-label tag-filter-toggle ui-font" id="tag-filter-toggle" aria-expanded="false" aria-controls="tag-filter-list">
+<span>ジャンルで探す</span>
+<span class="tag-filter-arrow" aria-hidden="true">▸</span>
+</button>
+<div class="tag-filter-list" id="tag-filter-list" hidden></div>
+</div>
+<div class="tag-filter" id="series-filter" hidden>
+<button type="button" class="tag-filter-label tag-filter-toggle ui-font" id="series-filter-toggle" aria-expanded="false" aria-controls="series-filter-list">
+<span>シリーズで探す</span>
+<span class="tag-filter-arrow" aria-hidden="true">▸</span>
+</button>
+<div class="tag-filter-list" id="series-filter-list" hidden></div>
+</div>
+<div class="tag-filter" id="year-filter" hidden>
+<button type="button" class="tag-filter-label tag-filter-toggle ui-font" id="year-filter-toggle" aria-expanded="false" aria-controls="year-filter-list">
+<span>年代で探す</span>
+<span class="tag-filter-arrow" aria-hidden="true">▸</span>
+</button>
+<div class="tag-filter-list" id="year-filter-list" hidden></div>
+</div>
+</div>
+<div class="list-toolbar" id="archive-sort-toolbar">
+<button type="button" class="list-toolbar-btn ui-font" id="archive-enter-list-btn">新着順に並べる</button>
+<button type="button" class="list-toolbar-btn ui-font" id="archive-back-to-category-btn" hidden>カテゴリ別に戻る</button>
+<button type="button" class="list-toolbar-btn ui-font" id="archive-year-dir-toggle" hidden>古い順で表示</button>
+<button type="button" class="list-toolbar-btn ui-font" id="archive-search-compact-toggle" data-compact-toggle data-compact-target="archive-search-list" hidden>コンパクト表示</button>
+</div>
+<div class="archive-search-results" id="archive-search-results" hidden>
+<p class="archive-filter-status ui-font" id="archive-filter-status" hidden></p>
+<ul class="work-list" id="archive-search-list"></ul>
+<p class="archive-search-empty ui-font" id="archive-search-empty" hidden>該当する作品が見つかりませんでした。</p>
+</div>
+</div>
 </section>
 
 <section id="view-works-novel" class="view" hidden>
@@ -17759,6 +17841,29 @@
       mailLink.textContent = mailUser + '@' + mailDomain;
     }
 
+    // アーカイブの「絞り込み」ボタン: ジャンル/シリーズ/年代のパネルを開閉する
+    var filterToggleBtn = document.getElementById('archive-filter-toggle');
+    var filterPanel = document.getElementById('archive-filter-panel');
+    if (filterToggleBtn && filterPanel) {
+      var setFilterPanel = function (open) {
+        filterPanel.hidden = !open;
+        filterToggleBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        if (open) {
+          // 初めて開いたとき、各項目も開いた状態にする
+          filterPanel.querySelectorAll('.tag-filter-toggle[aria-expanded="false"]').forEach(function (b) { b.click(); });
+        }
+      };
+      filterToggleBtn.addEventListener('click', function () {
+        setFilterPanel(filterPanel.hidden);
+      });
+      // 選んだら閉じて、結果がすぐ見えるようにする
+      filterPanel.addEventListener('click', function (e) {
+        if (e.target.closest && e.target.closest('.tag-filter-btn')) {
+          setTimeout(function () { setFilterPanel(false); }, 0);
+        }
+      });
+    }
+
     var archiveSearchInput = document.getElementById('archive-search-input');
     var applyTagFilter = function () {}; // replaced below once the archive index exists
     if (archiveSearchInput) {
@@ -18373,7 +18478,7 @@
       // ---- archive: list of bookmarked pages ----
       var archiveBuilt = false;
       function updateArchive() {
-        var anchor = document.getElementById('year-filter');
+        var anchor = document.getElementById('archive-filter-panel');
         if (!anchor) return;
         var wrap = document.getElementById('bookmark-filter');
         if (!wrap) {
