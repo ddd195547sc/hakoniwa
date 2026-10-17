@@ -982,21 +982,25 @@
   .archive-filter-toggle {
     display: inline-flex;
     align-items: center;
-    gap: 7px;
-    background: none;
-    border: none;
-    padding: 0;
+    gap: 8px;
+    background: var(--paper-raised, var(--paper));
+    border: 1px solid var(--accent);
+    border-radius: 999px;
+    padding: 7px 16px;
     margin: 0;
     font-family: 'Zen Kaku Gothic New', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', sans-serif;
-    font-size: 0.78rem;
+    font-size: 0.82rem;
     letter-spacing: 0.04em;
     color: var(--accent);
     cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
   }
 
   .archive-filter-toggle:hover,
-  .archive-filter-toggle:focus-visible {
-    text-decoration: underline;
+  .archive-filter-toggle:focus-visible,
+  .archive-filter-toggle[aria-expanded="true"] {
+    background: var(--accent);
+    color: var(--paper);
     outline: none;
   }
 
@@ -2923,9 +2927,6 @@
 <section id="view-works" class="view" hidden>
 <p class="eyebrow ui-font">Archive</p>
 <h1 class="page-title">Archive</h1>
-<div class="list-toolbar" id="archive-list-toolbar">
-<button type="button" class="list-toolbar-btn ui-font" data-compact-toggle data-compact-target="archive-category-list">通常表示</button>
-</div>
 <ul class="category-list is-compact" id="archive-category-list">
 <li class="category-entry">
 <a href="#/works/novel" data-nav class="category-link">
@@ -2958,7 +2959,7 @@
 <div class="archive-search">
 <input type="search" id="archive-search-input" class="archive-search-input ui-font" placeholder="作品タイトルで検索" autocomplete="off" aria-label="作品タイトルで検索" />
 <a href="#/search" data-nav class="archive-fulltext ui-font">本文もさがす ▸</a>
-<button type="button" class="archive-filter-toggle ui-font" id="archive-filter-toggle" aria-expanded="false" aria-controls="archive-filter-panel"><span>絞り込み</span><span class="archive-filter-chev" aria-hidden="true"></span></button>
+<button type="button" class="archive-filter-toggle ui-font" id="archive-filter-toggle" aria-expanded="false" aria-controls="archive-filter-panel"><span>ジャンル・シリーズ・年代で絞り込む</span><span class="archive-filter-chev" aria-hidden="true"></span></button>
 </div>
 <div class="archive-filter-panel" id="archive-filter-panel" hidden>
 <div class="tag-filter">
