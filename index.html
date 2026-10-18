@@ -1398,6 +1398,77 @@
     margin: 0 0 1.6em;
   }
 
+  /* 日記の末尾: 前後の日記へ */
+  .diary-pager {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    max-width: 34em;
+    margin-top: 56px;
+    padding-top: 20px;
+    border-top: 1px solid var(--rule);
+  }
+
+  .diary-pager-cell {
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 10px 12px;
+    border-radius: 6px;
+    text-decoration: none;
+    color: var(--accent);
+    transition: background 0.15s ease;
+  }
+
+  .diary-pager-cell.is-next {
+    align-items: flex-end;
+    text-align: right;
+  }
+
+  .diary-pager-cell.is-empty {
+    visibility: hidden;
+  }
+
+  a.diary-pager-cell:hover,
+  a.diary-pager-cell:focus-visible {
+    background: var(--paper-raised);
+    outline: none;
+  }
+
+  .diary-pager-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.82rem;
+    letter-spacing: 0.04em;
+  }
+
+  .diary-pager-cell.is-prev .diary-pager-label::before,
+  .diary-pager-cell.is-next .diary-pager-label::after {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-top: 1.5px solid currentColor;
+    border-right: 1.5px solid currentColor;
+  }
+
+  .diary-pager-cell.is-prev .diary-pager-label::before {
+    transform: rotate(-135deg);
+  }
+
+  .diary-pager-cell.is-next .diary-pager-label::after {
+    transform: rotate(45deg);
+  }
+
+  .diary-pager-date {
+    font-variant-numeric: tabular-nums;
+    font-size: 0.9rem;
+    letter-spacing: 0.04em;
+    color: var(--ink);
+  }
+
   /* ---------- work detail ---------- */
 
   .back-link {
@@ -16140,6 +16211,10 @@
 </header>
 <div class="diary-post-body" data-content-src="content/diary_paragraphs_2026-08-27.html">読み込み中…</div>
 </article>
+<nav class="diary-pager" aria-label="前後の日記">
+<span class="diary-pager-cell is-prev is-empty"></span>
+<a href="#/diary/2026-08-29" data-nav class="diary-pager-cell is-next ui-font"><span class="diary-pager-label">次の日記</span><span class="diary-pager-date">2026.08.29</span></a>
+</nav>
 </section>
 
 <section id="view-diary-2026-08-29" class="view" hidden>
@@ -16150,6 +16225,10 @@
 </header>
 <div class="diary-post-body" data-content-src="content/diary_paragraphs_2026-08-29.html">読み込み中…</div>
 </article>
+<nav class="diary-pager" aria-label="前後の日記">
+<a href="#/diary/2026-08-27" data-nav class="diary-pager-cell is-prev ui-font"><span class="diary-pager-label">前の日記</span><span class="diary-pager-date">2026.08.27</span></a>
+<a href="#/diary/2026-08-30" data-nav class="diary-pager-cell is-next ui-font"><span class="diary-pager-label">次の日記</span><span class="diary-pager-date">2026.08.30</span></a>
+</nav>
 </section>
 
 <section id="view-diary-2026-08-30" class="view" hidden>
@@ -16160,6 +16239,10 @@
 </header>
 <div class="diary-post-body" data-content-src="content/diary_paragraphs_2026-08-30.html">読み込み中…</div>
 </article>
+<nav class="diary-pager" aria-label="前後の日記">
+<a href="#/diary/2026-08-29" data-nav class="diary-pager-cell is-prev ui-font"><span class="diary-pager-label">前の日記</span><span class="diary-pager-date">2026.08.29</span></a>
+<a href="#/diary/2026-08-31" data-nav class="diary-pager-cell is-next ui-font"><span class="diary-pager-label">次の日記</span><span class="diary-pager-date">2026.08.31</span></a>
+</nav>
 </section>
 
 <section id="view-diary-2026-08-31" class="view" hidden>
@@ -16170,6 +16253,10 @@
 </header>
 <div class="diary-post-body" data-content-src="content/diary_paragraphs_2026-08-31.html">読み込み中…</div>
 </article>
+<nav class="diary-pager" aria-label="前後の日記">
+<a href="#/diary/2026-08-30" data-nav class="diary-pager-cell is-prev ui-font"><span class="diary-pager-label">前の日記</span><span class="diary-pager-date">2026.08.30</span></a>
+<a href="#/diary/2026-09-01" data-nav class="diary-pager-cell is-next ui-font"><span class="diary-pager-label">次の日記</span><span class="diary-pager-date">2026.09.01</span></a>
+</nav>
 </section>
 
 <section id="view-diary-2026-09-01" class="view" hidden>
@@ -16180,6 +16267,10 @@
 </header>
 <div class="diary-post-body" data-content-src="content/diary_paragraphs_2026-09-01.html">読み込み中…</div>
 </article>
+<nav class="diary-pager" aria-label="前後の日記">
+<a href="#/diary/2026-08-31" data-nav class="diary-pager-cell is-prev ui-font"><span class="diary-pager-label">前の日記</span><span class="diary-pager-date">2026.08.31</span></a>
+<a href="#/diary/2026-09-08" data-nav class="diary-pager-cell is-next ui-font"><span class="diary-pager-label">次の日記</span><span class="diary-pager-date">2026.09.08</span></a>
+</nav>
 </section>
 
 <section id="view-diary-2026-09-08" class="view" hidden>
@@ -16190,6 +16281,10 @@
 </header>
 <div class="diary-post-body" data-content-src="content/diary_paragraphs_2026-09-08.html">読み込み中…</div>
 </article>
+<nav class="diary-pager" aria-label="前後の日記">
+<a href="#/diary/2026-09-01" data-nav class="diary-pager-cell is-prev ui-font"><span class="diary-pager-label">前の日記</span><span class="diary-pager-date">2026.09.01</span></a>
+<a href="#/diary/2026-09-09" data-nav class="diary-pager-cell is-next ui-font"><span class="diary-pager-label">次の日記</span><span class="diary-pager-date">2026.09.09</span></a>
+</nav>
 </section>
 
 <section id="view-diary-2026-09-09" class="view" hidden>
@@ -16200,6 +16295,10 @@
 </header>
 <div class="diary-post-body" data-content-src="content/diary_paragraphs_2026-09-09.html">読み込み中…</div>
 </article>
+<nav class="diary-pager" aria-label="前後の日記">
+<a href="#/diary/2026-09-08" data-nav class="diary-pager-cell is-prev ui-font"><span class="diary-pager-label">前の日記</span><span class="diary-pager-date">2026.09.08</span></a>
+<a href="#/diary/2026-09-11" data-nav class="diary-pager-cell is-next ui-font"><span class="diary-pager-label">次の日記</span><span class="diary-pager-date">2026.09.11</span></a>
+</nav>
 </section>
 
 <section id="view-diary-2026-09-11" class="view" hidden>
@@ -16210,6 +16309,10 @@
 </header>
 <div class="diary-post-body" data-content-src="content/diary_paragraphs_2026-09-11.html">読み込み中…</div>
 </article>
+<nav class="diary-pager" aria-label="前後の日記">
+<a href="#/diary/2026-09-09" data-nav class="diary-pager-cell is-prev ui-font"><span class="diary-pager-label">前の日記</span><span class="diary-pager-date">2026.09.09</span></a>
+<a href="#/diary/2026-09-12" data-nav class="diary-pager-cell is-next ui-font"><span class="diary-pager-label">次の日記</span><span class="diary-pager-date">2026.09.12</span></a>
+</nav>
 </section>
 
 <section id="view-diary-2026-09-12" class="view" hidden>
@@ -16220,6 +16323,10 @@
 </header>
 <div class="diary-post-body" data-content-src="content/diary_paragraphs_2026-09-12.html">読み込み中…</div>
 </article>
+<nav class="diary-pager" aria-label="前後の日記">
+<a href="#/diary/2026-09-11" data-nav class="diary-pager-cell is-prev ui-font"><span class="diary-pager-label">前の日記</span><span class="diary-pager-date">2026.09.11</span></a>
+<a href="#/diary/2026-09-16" data-nav class="diary-pager-cell is-next ui-font"><span class="diary-pager-label">次の日記</span><span class="diary-pager-date">2026.09.16</span></a>
+</nav>
 </section>
 
 <section id="view-diary-2026-09-16" class="view" hidden>
@@ -16230,6 +16337,10 @@
 </header>
 <div class="diary-post-body" data-content-src="content/diary_paragraphs_2026-09-16.html">読み込み中…</div>
 </article>
+<nav class="diary-pager" aria-label="前後の日記">
+<a href="#/diary/2026-09-12" data-nav class="diary-pager-cell is-prev ui-font"><span class="diary-pager-label">前の日記</span><span class="diary-pager-date">2026.09.12</span></a>
+<a href="#/diary/2026-09-19" data-nav class="diary-pager-cell is-next ui-font"><span class="diary-pager-label">次の日記</span><span class="diary-pager-date">2026.09.19</span></a>
+</nav>
 </section>
 
 <section id="view-diary-2026-09-19" class="view" hidden>
@@ -16240,6 +16351,10 @@
 </header>
 <div class="diary-post-body" data-content-src="content/diary_paragraphs_2026-09-19.html">読み込み中…</div>
 </article>
+<nav class="diary-pager" aria-label="前後の日記">
+<a href="#/diary/2026-09-16" data-nav class="diary-pager-cell is-prev ui-font"><span class="diary-pager-label">前の日記</span><span class="diary-pager-date">2026.09.16</span></a>
+<a href="#/diary/2026-09-20" data-nav class="diary-pager-cell is-next ui-font"><span class="diary-pager-label">次の日記</span><span class="diary-pager-date">2026.09.20</span></a>
+</nav>
 </section>
 
 <section id="view-diary-2026-09-20" class="view" hidden>
@@ -16250,6 +16365,10 @@
 </header>
 <div class="diary-post-body" data-content-src="content/diary_paragraphs_2026-09-20.html">読み込み中…</div>
 </article>
+<nav class="diary-pager" aria-label="前後の日記">
+<a href="#/diary/2026-09-19" data-nav class="diary-pager-cell is-prev ui-font"><span class="diary-pager-label">前の日記</span><span class="diary-pager-date">2026.09.19</span></a>
+<a href="#/diary/2026-09-26" data-nav class="diary-pager-cell is-next ui-font"><span class="diary-pager-label">次の日記</span><span class="diary-pager-date">2026.09.26</span></a>
+</nav>
 </section>
 
 <section id="view-diary-2026-09-26" class="view" hidden>
@@ -16260,6 +16379,10 @@
 </header>
 <div class="diary-post-body" data-content-src="content/diary_paragraphs_2026-09-26.html">読み込み中…</div>
 </article>
+<nav class="diary-pager" aria-label="前後の日記">
+<a href="#/diary/2026-09-20" data-nav class="diary-pager-cell is-prev ui-font"><span class="diary-pager-label">前の日記</span><span class="diary-pager-date">2026.09.20</span></a>
+<a href="#/diary/2026-09-29" data-nav class="diary-pager-cell is-next ui-font"><span class="diary-pager-label">次の日記</span><span class="diary-pager-date">2026.09.29</span></a>
+</nav>
 </section>
 
 <section id="view-diary-2026-09-29" class="view" hidden>
@@ -16270,6 +16393,10 @@
 </header>
 <div class="diary-post-body" data-content-src="content/diary_paragraphs_2026-09-29.html">読み込み中…</div>
 </article>
+<nav class="diary-pager" aria-label="前後の日記">
+<a href="#/diary/2026-09-26" data-nav class="diary-pager-cell is-prev ui-font"><span class="diary-pager-label">前の日記</span><span class="diary-pager-date">2026.09.26</span></a>
+<a href="#/diary/2026-10-01" data-nav class="diary-pager-cell is-next ui-font"><span class="diary-pager-label">次の日記</span><span class="diary-pager-date">2026.10.01</span></a>
+</nav>
 </section>
 
 <section id="view-diary-2026-10-01" class="view" hidden>
@@ -16280,6 +16407,10 @@
 </header>
 <div class="diary-post-body" data-content-src="content/diary_paragraphs_2026-10-01.html">読み込み中…</div>
 </article>
+<nav class="diary-pager" aria-label="前後の日記">
+<a href="#/diary/2026-09-29" data-nav class="diary-pager-cell is-prev ui-font"><span class="diary-pager-label">前の日記</span><span class="diary-pager-date">2026.09.29</span></a>
+<a href="#/diary/2026-10-04" data-nav class="diary-pager-cell is-next ui-font"><span class="diary-pager-label">次の日記</span><span class="diary-pager-date">2026.10.04</span></a>
+</nav>
 </section>
 
 <section id="view-diary-2026-10-04" class="view" hidden>
@@ -16290,6 +16421,10 @@
 </header>
 <div class="diary-post-body" data-content-src="content/diary_paragraphs_2026-10-04.html">読み込み中…</div>
 </article>
+<nav class="diary-pager" aria-label="前後の日記">
+<a href="#/diary/2026-10-01" data-nav class="diary-pager-cell is-prev ui-font"><span class="diary-pager-label">前の日記</span><span class="diary-pager-date">2026.10.01</span></a>
+<a href="#/diary/2026-10-09" data-nav class="diary-pager-cell is-next ui-font"><span class="diary-pager-label">次の日記</span><span class="diary-pager-date">2026.10.09</span></a>
+</nav>
 </section>
 
 <section id="view-diary-2026-10-09" class="view" hidden>
@@ -16300,6 +16435,10 @@
 </header>
 <div class="diary-post-body" data-content-src="content/diary_paragraphs_2026-10-09.html">読み込み中…</div>
 </article>
+<nav class="diary-pager" aria-label="前後の日記">
+<a href="#/diary/2026-10-04" data-nav class="diary-pager-cell is-prev ui-font"><span class="diary-pager-label">前の日記</span><span class="diary-pager-date">2026.10.04</span></a>
+<a href="#/diary/2026-10-15" data-nav class="diary-pager-cell is-next ui-font"><span class="diary-pager-label">次の日記</span><span class="diary-pager-date">2026.10.15</span></a>
+</nav>
 </section>
 
 <section id="view-diary-2026-10-15" class="view" hidden>
@@ -16310,6 +16449,10 @@
 </header>
 <div class="diary-post-body" data-content-src="content/diary_paragraphs_2026-10-15.html">読み込み中…</div>
 </article>
+<nav class="diary-pager" aria-label="前後の日記">
+<a href="#/diary/2026-10-09" data-nav class="diary-pager-cell is-prev ui-font"><span class="diary-pager-label">前の日記</span><span class="diary-pager-date">2026.10.09</span></a>
+<a href="#/diary/2026-10-17" data-nav class="diary-pager-cell is-next ui-font"><span class="diary-pager-label">次の日記</span><span class="diary-pager-date">2026.10.17</span></a>
+</nav>
 </section>
 
 <section id="view-diary-2026-10-17" class="view" hidden>
@@ -16320,6 +16463,10 @@
 </header>
 <div class="diary-post-body" data-content-src="content/diary_paragraphs_2026-10-17.html">読み込み中…</div>
 </article>
+<nav class="diary-pager" aria-label="前後の日記">
+<a href="#/diary/2026-10-15" data-nav class="diary-pager-cell is-prev ui-font"><span class="diary-pager-label">前の日記</span><span class="diary-pager-date">2026.10.15</span></a>
+<span class="diary-pager-cell is-next is-empty"></span>
+</nav>
 </section>
 
 <section id="view-work-ame-no-yoru-kawarenai-neko" class="view" hidden>
