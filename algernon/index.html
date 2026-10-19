@@ -377,7 +377,12 @@ async function saveFile(name,data){
 function dateStr(){var d=new Date();return d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())}
 function outSheet(){var o=eo(),w=W(),c=C();
   var sum='段落頭の全角スペース:'+(o.indent?'あり':'なし')+' ／ 段落間の空行:'+(o.blank?'あり':'なし')+' ／ ルビ・傍点:'+({keep:'そのまま',paren:'括弧書き',strip:'外す'}[o.ruby]);
-  sheet('コピーと書き出し','<div class="sec">投稿サイト向け</div><div class="acts"><button class="btn pri" id="x1">この章の本文をコピー</button><button class="btn" id="x2">全章をまとめてコピー</button></div><p class="sub">'+esc(sum)+'。整形は設定の「書き出しの整形」で変えられます。</p><div class="sec">ファイルで保存</div><div class="acts"><button class="btn" id="x3">この章をtxtで保存</button><button class="btn" id="x4">全章を1つのtxtで保存</button><button class="btn" id="x5">章ごとのtxtをZIPで保存</button><button class="btn" id="x6">Word(docx)で保存</button></div><div class="acts"><button class="btn lnk" id="x7">ルビや傍点をプレビューで確認</button></div>',function(r){
+  var fl='';if(FS){var lk=c.link;fl='<div class="sec">パソコンのtxtファイルと連携</div><div class="acts"><button class="btn" id="f1">txtを開く</button><button class="btn pri" id="f2">上書き保存</button><button class="btn" id="f3">名前を付けて保存</button></div>'
+    +(lk?'<p class="sub">この章の連携先:「'+esc(lk.name)+'」 ／ 最後に保存:'+hhmm(lk.at)+' ／ '+(fileDirty(c)?'保存していない変更があります':'変更はすべて保存済み')+'</p><div class="acts"><button class="btn" id="f4">ファイルから読み込み直す</button><button class="btn lnk" id="f5">連携を解除</button></div>':'<p class="sub">この章はまだファイルと連携していません。「上書き保存」か「名前を付けて保存」で保存先を選ぶと、連携します。</p>')
+    +'<p class="sub">Ctrl+S(Macは⌘+S)でも上書き保存できます。ここでの保存は、整形(全角スペースや空行の追加、ルビの変換)をせず、本文をそのまま書き込みます。ルビは「|漢字《かんじ》」の形で入ります。Dropboxなどの同期フォルダにあるファイルを選ぶと、他のパソコンにも反映されます。</p>'}
+  sheet('コピーと書き出し',fl+'<div class="sec">投稿サイト向け</div><div class="acts"><button class="btn pri" id="x1">この章の本文をコピー</button><button class="btn" id="x2">全章をまとめてコピー</button></div><p class="sub">'+esc(sum)+'。整形は設定の「書き出しの整形」で変えられます。</p><div class="sec">ファイルで保存</div><div class="acts"><button class="btn" id="x3">この章をtxtで保存</button><button class="btn" id="x4">全章を1つのtxtで保存</button><button class="btn" id="x5">章ごとのtxtをZIPで保存</button><button class="btn" id="x6">Word(docx)で保存</button></div><div class="acts"><button class="btn lnk" id="x7">ルビや傍点をプレビューで確認</button></div>',function(r){
+    if(FS){r.querySelector('#f1').onclick=openTxt;r.querySelector('#f2').onclick=function(){saveLinked(false).then(function(ok){if(ok)closeLayers()})};r.querySelector('#f3').onclick=function(){saveLinked(true).then(function(ok){if(ok)closeLayers()})};
+      var f4=r.querySelector('#f4');if(f4){f4.onclick=reloadLinked;r.querySelector('#f5').onclick=unlinkTxt}}
     r.querySelector('#x1').onclick=function(){copyText(chapterTxt(c,o,false))};
     r.querySelector('#x2').onclick=function(){copyText(workTxt(w,o))};
     r.querySelector('#x3').onclick=function(){saveFile(safeName(c.title)+'.txt',chapterTxt(c,o,false)+'\n')};
@@ -385,6 +390,52 @@ function outSheet(){var o=eo(),w=W(),c=C();
     r.querySelector('#x5').onclick=function(){if(!window.JSZip){toast('ZIPを作成できませんでした');return}var z=new JSZip();w.chs.forEach(function(ch,i){z.file(pad(i+1)+'_'+safeName(ch.title)+'.txt',chapterTxt(ch,o,false)+'\n')});z.generateAsync({type:'blob',compression:'DEFLATE'}).then(function(b){saveFile(safeName(w.title)+'.zip',b)},function(){toast('ZIPを作成できませんでした')})};
     r.querySelector('#x6').onclick=function(){if(!window.JSZip){toast('docxを作成できませんでした');return}var z=new JSZip();z.file('[Content_Types].xml',DX_CT);z.file('_rels/.rels',DX_RELS);z.file('word/document.xml',docXml(w,o));z.file('word/_rels/document.xml.rels',DX_DRELS);z.file('word/styles.xml',DX_STY);z.generateAsync({type:'blob',compression:'DEFLATE'}).then(function(b){saveFile(safeName(w.title)+'.docx',b)},function(){toast('docxを作成できませんでした')})};
     r.querySelector('#x7').onclick=previewOpen})}
+
+/* ===== パソコンのtxtファイルと連携(上書き保存)。対応ブラウザだけで有効 ===== */
+var FS=!!(window.showOpenFilePicker&&window.showSaveFilePicker&&window.indexedDB&&window.isSecureContext);
+var FH={};
+var TXT_T=[{description:'テキストファイル',accept:{'text/plain':['.txt']}}];
+function idb(){return new Promise(function(res,rej){var q=indexedDB.open('algernon-fh',1);q.onupgradeneeded=function(){q.result.createObjectStore('h')};q.onsuccess=function(){res(q.result)};q.onerror=function(){rej(q.error)}})}
+function hPut(id,h){FH[id]=h;return idb().then(function(db){return new Promise(function(res){var t=db.transaction('h','readwrite');t.objectStore('h').put(h,id);t.oncomplete=function(){res(true)};t.onerror=function(){res(false)}})}).catch(function(){return false})}
+function hGet(id){if(FH[id])return Promise.resolve(FH[id]);return idb().then(function(db){return new Promise(function(res){var r=db.transaction('h').objectStore('h').get(id);r.onsuccess=function(){if(r.result)FH[id]=r.result;res(r.result||null)};r.onerror=function(){res(null)}})}).catch(function(){return null})}
+function hDel(id){delete FH[id];return idb().then(function(db){return new Promise(function(res){var t=db.transaction('h','readwrite');t.objectStore('h').delete(id);t.oncomplete=function(){res()};t.onerror=function(){res()}})}).catch(function(){})}
+function hash32(t){var h=5381;for(var i=0;i<t.length;i++)h=((h<<5)+h+t.charCodeAt(i))|0;return h}
+function stripExt(n){return String(n||'').replace(/\.(txt|text)$/i,'')||'No title'}
+function hhmm(t){var d=new Date(t);return pad(d.getHours())+':'+pad(d.getMinutes())}
+async function grant(h,mode){var o={mode:mode};try{if((await h.queryPermission(o))==='granted')return true;return (await h.requestPermission(o))==='granted'}catch(e){return false}}
+async function readTxt(file){var buf=await file.arrayBuffer(),t,sj=false;
+  try{t=new TextDecoder('utf-8',{fatal:true}).decode(buf)}catch(e){try{t=new TextDecoder('shift_jis').decode(buf);sj=true}catch(e2){t=new TextDecoder('utf-8').decode(buf)}}
+  t=t.replace(/^﻿/,'');var crlf=/\r\n/.test(t);t=t.replace(/\r\n?/g,'\n').replace(/\n$/,'');return {text:t,crlf:crlf,sj:sj}}
+function fileDirty(c){return !!(c.link&&c.link.hs!==hash32(c.text))}
+async function openTxt(){var hs;try{hs=await showOpenFilePicker({types:TXT_T,multiple:false})}catch(e){return}
+  var h=hs[0];if(!(await grant(h,'readwrite'))){toast('ファイルへの書き込みが許可されませんでした');return}
+  try{var f=await h.getFile(),r=await readTxt(f),w=W(),c=newChapter(stripExt(h.name));c.text=r.text;c.link={name:h.name,mod:f.lastModified,hs:hash32(r.text),at:now(),crlf:r.crlf};
+    w.chs.push(c);w.cur=c.id;w.at=now();await hPut(c.id,h);persist();renderAll();closeLayers();
+    toast('「'+h.name+'」を新しい章として開きました'+(r.sj?'(Shift_JISのため、上書き保存するとUTF-8に変わります)':''))}
+  catch(e){toast('ファイルを開けませんでした')}}
+async function saveLinked(asNew){var c=C(),h=asNew?null:await hGet(c.id);
+  try{
+    if(!h){var sug=(c.link&&c.link.name)||safeName(c.title)+'.txt';h=await showSaveFilePicker({suggestedName:sug,types:TXT_T});c.link=c.link||{};c.link.crlf=!!c.link.crlf;await hPut(c.id,h);c.link.mod=0;asNew=true}
+    else{
+      if(!(await grant(h,'readwrite'))){toast('ファイルへの書き込みが許可されませんでした');return false}
+      var cur=await h.getFile();
+      if(c.link&&c.link.mod&&cur.lastModified!==c.link.mod&&!confirm('このファイルは、最後に保存したあと別の場所で更新されています。\n上書きすると、その変更は失われます。上書きしますか?')){toast('上書き保存を中止しました');return false}}
+    var out=c.text.replace(/\n$/,'')+'\n';if(c.link&&c.link.crlf)out=out.replace(/\n/g,'\r\n');
+    var wr=await h.createWritable();await wr.write(new Blob([out],{type:'text/plain'}));await wr.close();
+    var f2=await h.getFile();c.link={name:h.name,mod:f2.lastModified,hs:hash32(c.text),at:now(),crlf:!!(c.link&&c.link.crlf)};persist();
+    toast('「'+h.name+'」に'+(asNew?'保存しました':'上書き保存しました'));return true}
+  catch(e){if(e&&e.name==='AbortError')return false;
+    if(e&&e.name==='NotFoundError'){toast('元のファイルが見つかりません。「名前を付けて保存」で保存先を選び直してください');return false}
+    toast('保存できませんでした');return false}}
+async function reloadLinked(){var c=C(),h=await hGet(c.id);if(!h){toast('連携しているファイルがありません');return}
+  if(!(await grant(h,'read'))){toast('ファイルの読み取りが許可されませんでした');return}
+  try{var f=await h.getFile(),r=await readTxt(f);
+    if(r.text===c.text){c.link.mod=f.lastModified;c.link.hs=hash32(c.text);persist();toast('ファイルの内容は今の本文と同じです');return}
+    snap(c,true);c.text=r.text;c.at=now();W().at=now();c.link={name:h.name,mod:f.lastModified,hs:hash32(r.text),at:now(),crlf:r.crlf};
+    setEditor(c.text);pushUndo();persist();updateCount();renderDrawer();closeLayers();toast('ファイルの内容に読み込み直しました。元の本文は履歴から戻せます')}
+  catch(e){toast('ファイルを読み込めませんでした')}}
+function unlinkTxt(){var c=C();delete c.link;hDel(c.id);persist();closeLayers();toast('連携を解除しました(ファイルは残っています)')}
+if(FS)document.addEventListener('keydown',function(e){if((e.ctrlKey||e.metaKey)&&!e.altKey&&!e.shiftKey&&(e.key==='s'||e.key==='S')){e.preventDefault();saveLinked(false)}});
 
 function previewOpen(){closeLayers();var h='';C().text.replace(/\n+$/,'').split('\n').forEach(function(l){h+='<p>'+(l.trim()===''?'&nbsp;':parseLine(l).map(function(p){return p.t==='x'?esc(p.s):p.t==='e'?'<em>'+esc(p.s)+'</em>':'<ruby>'+esc(p.b)+'<rt>'+esc(p.r)+'</rt></ruby>'}).join(''))+'</p>'});
   var pv=$('pv');pv.innerHTML=h||'<p>(本文がありません)</p>';pv.classList.toggle('v',D.s.dir==='v');$('prev').hidden=false;pv.scrollTop=0;pv.scrollLeft=0;$('pv-x').focus({preventScroll:true})}
