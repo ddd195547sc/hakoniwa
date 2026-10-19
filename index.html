@@ -2486,6 +2486,47 @@
     letter-spacing: 0.24em;
   }
 
+  /* 新着のお知らせ(読者のブラウザの中だけで判定。印は、新しい作品・日記があるときだけ出る) */
+  .entrance-news {
+    margin: 22px 0 0;
+    font-size: 0.76rem;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+  }
+
+  .entrance-news::before,
+  .sidebar-nav a.has-news::after {
+    content: "";
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+
+  .entrance-news::before {
+    margin-right: 9px;
+    vertical-align: 0.12em;
+  }
+
+  .sidebar-nav a.has-news::after {
+    margin-left: 7px;
+    vertical-align: 0.14em;
+  }
+
+  .news-badge {
+    display: inline-block;
+    margin-right: 8px;
+    padding: 0 6px;
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    line-height: 1.5;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    border-radius: 999px;
+    vertical-align: 0.12em;
+  }
+
   /* エントランスの注意書き(権利・表現についての短い案内) */
   .entrance-notice {
     margin: 30px auto 0;
@@ -2726,6 +2767,7 @@
 <h1 class="entrance-title brand-mark">はこにわ</h1>
 <img class="entrance-cover" src="images/sky_photo.jpg" alt="雲の切れ間から光が差し込み、小さく赤く滲んだ太陽が見える空の写真" />
 <a href="#/home" data-nav class="enter-link ui-font">Enter</a>
+<p class="entrance-news ui-font" id="entrance-news" hidden>新しい更新があります</p>
 <p class="entrance-notice ui-font">
 <span><span class="nb">ここにある文章や画像等制作物の</span><span class="nb">権利は、管理者に帰属します。</span></span>
 <span><span class="nb">作品によっては、</span><span class="nb">刺激の強い表現や、</span><span class="nb">暴力・性・グロテスクな描写を含みます。</span></span>
@@ -17974,6 +18016,60 @@
       document.addEventListener('DOMContentLoaded', function () { setTimeout(function () { onRoute(currentPath()); }, 0); });
     })();
 
+    // ---- 新着のお知らせ ----
+    // 新しい作品・日記を追加したときだけ、トップに1行、ナビに点、更新履歴に NEW を出す。
+    // 判定はすべて読者のブラウザの中。localStorage には「どこまで見たか」の日時だけを持ち、外へは何も送らない。
+    // 初めて来た人には何も出さない(その時点を「見た」ことにする)。NEWS = {base, items:[[種別,日時],…]} は build_site.py が差し込む。
+    var NEWS = /*SITE_NEWS_BEGIN*/{"base":"2026-10-20T00:54","items":[]}/*SITE_NEWS_END*/;
+    var NEWS_KEY = 'hakoniwa:news:v1';
+    function applyNews(path, match) {
+      if (!NEWS) return;
+      var items = NEWS.items || [];
+      var latest = '';
+      items.forEach(function (n) { if (n[1] > latest) latest = n[1]; });
+      var st = null;
+      try { st = JSON.parse(window.localStorage.getItem(NEWS_KEY) || 'null'); } catch (e) { st = null; }
+      var fresh = false;
+      if (!st || typeof st !== 'object') {
+        // 新しい作品・日記がまだ1つもないあいだは、記録の開始時点(base)を「見た」ことにしておく
+        var init = latest || NEWS.base || '';
+        st = { top: init, upd: init, work: init, diary: init };
+        fresh = true;
+      }
+      function newer(kind, since) {
+        return items.filter(function (n) { return (!kind || n[0] === kind) && n[1] > (since || ''); }).length > 0;
+      }
+      // 更新履歴の NEW(この回の表示では、見る前の状態で付ける)
+      document.querySelectorAll('.news-badge').forEach(function (b) { b.remove(); });
+      document.querySelectorAll('.history-text[data-news]').forEach(function (li) {
+        if (li.getAttribute('data-news') > (st.upd || '')) {
+          var b = document.createElement('span');
+          b.className = 'news-badge ui-font';
+          b.textContent = 'NEW';
+          li.insertBefore(b, li.firstChild);
+        }
+      });
+      // トップの1行(トップを開いているあいだは、まだ「見た」ことにしない)
+      var line = document.getElementById('entrance-news');
+      if (line) line.hidden = !(match.entrance && newer(null, st.top));
+      // どこまで見たかを進める
+      var changed = fresh;
+      function mark(key) { if (latest && st[key] !== latest) { st[key] = latest; changed = true; } }
+      if (!match.entrance) mark('top');
+      if (path === '/updates') mark('upd');
+      if (path === '/works' || path.indexOf('/works/') === 0) mark('work');
+      if (path === '/diary') mark('diary');
+      if (changed) { try { window.localStorage.setItem(NEWS_KEY, JSON.stringify(st)); } catch (e) {} }
+      // ナビの点
+      var flags = { '/updates': newer(null, st.upd), '/works': newer('work', st.work), '/diary': newer('diary', st.diary) };
+      document.querySelectorAll('#sidebar-nav a').forEach(function (a) {
+        var on = !!flags[a.getAttribute('data-route')];
+        a.classList.toggle('has-news', on);
+        if (on) a.setAttribute('aria-label', a.textContent.trim() + '(新着あり)');
+        else a.removeAttribute('aria-label');
+      });
+    }
+
     function render() {
       var path = currentPath();
       var match = resolveView(path);
@@ -18008,6 +18104,7 @@
       if (bookmarkHook) bookmarkHook(path);
       if (readerHook) readerHook(path);
       if (verticalHook) verticalHook(path);
+      applyNews(path, match);
     }
 
     document.addEventListener('click', function (e) {
