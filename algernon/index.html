@@ -35,9 +35,9 @@ button{cursor:pointer}
 .ib.sm{width:40px;height:40px}
 #top{flex:none;height:48px;display:flex;align-items:center;justify-content:space-between;margin:0 -8px}
 #ttl{flex:1;min-width:0;height:48px;background:none;border:0;color:var(--mute);font-size:14px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 8px}
-#main{flex:1;min-height:0;position:relative}
-#ed{position:absolute;inset:0;outline:none;white-space:pre-wrap;line-break:strict;overflow-wrap:anywhere;font-family:var(--ed-font);font-size:var(--ed-size);line-height:var(--ed-lh);caret-color:var(--acc);padding:8px 0 68px;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;-webkit-user-select:text;user-select:text}
-#ed.v{writing-mode:vertical-rl;overflow-x:auto;overflow-y:hidden;padding:8px 8px 68px}
+#main{flex:1;min-height:0;position:relative;margin-bottom:54px}
+#ed{position:absolute;inset:0;outline:none;white-space:pre-wrap;line-break:strict;overflow-wrap:anywhere;font-family:var(--ed-font);font-size:var(--ed-size);line-height:var(--ed-lh);caret-color:var(--acc);padding:8px 0 14px;scroll-padding-bottom:14px;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;-webkit-user-select:text;user-select:text}
+#ed.v{writing-mode:vertical-rl;overflow-x:auto;overflow-y:hidden;padding:8px 8px 14px}
 #ed:empty::before{content:attr(data-ph);color:var(--mute);font-size:.8em}
 #ed::selection{background:var(--accbg)}
 #bar{position:absolute;left:max(16px,env(safe-area-inset-left,0px));right:max(16px,env(safe-area-inset-right,0px));bottom:0;height:54px;display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--bg);color:var(--mute);font-size:14px;transition:transform .18s ease,opacity .18s ease;z-index:5;margin:0 -8px;padding:0 8px 0 8px}
@@ -156,7 +156,7 @@ input.sw:checked::after{transform:translateX(16px)}
       <button class="ib" id="bUndo" aria-label="元に戻す"><svg class="i"><use href="#i-undo"/></svg></button>
       <button class="ib" id="bRedo" aria-label="やり直す"><svg class="i"><use href="#i-redo"/></svg></button>
       <button class="ib" id="bFind" aria-label="検索と置換"><svg class="i"><use href="#i-search"/></svg></button>
-      <button class="ib" id="bOut" aria-label="コピーと書き出し"><svg class="i"><use href="#i-export"/></svg></button>
+      <button class="ib" id="bOut" aria-label="書き出しとバックアップ"><svg class="i"><use href="#i-export"/></svg></button>
       <button class="ib" id="bDir" aria-label="縦書きに切り替え"><svg class="i"><use href="#i-tate"/></svg></button>
     </span>
     <span class="ic" id="fmt">
@@ -375,12 +375,21 @@ async function saveFile(name,data){
   try{var u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(function(){URL.revokeObjectURL(u)},30000);toast('保存しました');return true}
   catch(e){toast('保存できませんでした');return false}}
 function dateStr(){var d=new Date();return d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())}
+function bkHtml(){return '<div class="sec">バックアップ</div>'
+  +(FS?'<div class="row"><span>保存先フォルダ<small id="bk-dn">未設定</small></span><button class="btn" id="bk-dir">選ぶ</button></div><div class="acts"><button class="btn pri" id="bk-fo">フォルダに書き出す</button><button class="btn" id="bk-fi">フォルダから読み込む</button></div><p class="sub">作品ごとに「作品名.json」を1つ作り、書き出すたびに同じ名前のファイルへ上書きします(日付付きのファイルは増えません)。Dropboxなどのフォルダにしておくとほかのパソコンでも読み込めます。名前を変えた作品や削除した作品の古いファイルは、フォルダに残ります。同じ作品を読み込んだときは、章ごとに本文を置き換え、元の本文は履歴に残ります。</p>':'')
+  +'<div class="acts"><button class="btn" id="bk-out">'+(FS?'全作品を1つのファイルで書き出す(.json)':'バックアップを書き出す(.json)')+'</button><button class="btn" id="bk-in">バックアップを読み込む</button></div><input type="file" id="bk-f" accept=".json,application/json" multiple hidden>';}
+function bkBind(r){r.querySelector('#bk-out').onclick=dlBackup;r.querySelector('#bk-in').onclick=function(){r.querySelector('#bk-f').click()};
+  r.querySelector('#bk-f').addEventListener('change',function(e){backupIn(e.target.files);e.target.value=''});
+  if(FS){var dn=r.querySelector('#bk-dn'),db=r.querySelector('#bk-dir');hGet('__dir').then(function(d){if(d){dn.textContent='「'+d.name+'」';db.textContent='変える'}});
+    db.onclick=function(){showDirectoryPicker({mode:'readwrite'}).then(function(d){return hPut('__dir',d).then(function(){dn.textContent='「'+d.name+'」';db.textContent='変える';toast('保存先を「'+d.name+'」にしました')})},function(){})};
+    r.querySelector('#bk-fo').onclick=function(){folderOut(false).then(function(ok){if(ok)closeLayers()})};r.querySelector('#bk-fi').onclick=folderIn}}
 function outSheet(){var o=eo(),w=W(),c=C();
   var sum='段落頭の全角スペース:'+(o.indent?'あり':'なし')+' ／ 段落間の空行:'+(o.blank?'あり':'なし')+' ／ ルビ・傍点:'+({keep:'そのまま',paren:'括弧書き',strip:'外す'}[o.ruby]);
   var fl='';if(FS){var lk=c.link;fl='<div class="sec">パソコンのtxtファイルと連携</div><div class="acts"><button class="btn" id="f1">txtを開く</button><button class="btn pri" id="f2">上書き保存</button><button class="btn" id="f3">名前を付けて保存</button></div>'
     +(lk?'<p class="sub">この章の連携先:「'+esc(lk.name)+'」 ／ 最後に保存:'+hhmm(lk.at)+' ／ '+(fileDirty(c)?'保存していない変更があります':'変更はすべて保存済み')+'</p><div class="acts"><button class="btn" id="f4">ファイルから読み込み直す</button><button class="btn lnk" id="f5">連携を解除</button></div>':'<p class="sub">この章はまだファイルと連携していません。「上書き保存」か「名前を付けて保存」で保存先を選ぶと、連携します。</p>')
     +'<p class="sub">Ctrl+S(Macは⌘+S)でも上書き保存できます。ここでの保存は、整形(全角スペースや空行の追加、ルビの変換)をせず、本文をそのまま書き込みます。ルビは「|漢字《かんじ》」の形で入ります。Dropboxなどの同期フォルダにあるファイルを選ぶと、他のパソコンにも反映されます。</p>'}
-  sheet('コピーと書き出し',fl+'<div class="sec">投稿サイト向け</div><div class="acts"><button class="btn pri" id="x1">この章の本文をコピー</button><button class="btn" id="x2">全章をまとめてコピー</button></div><p class="sub">'+esc(sum)+'。整形は設定の「書き出しの整形」で変えられます。</p><div class="sec">ファイルで保存</div><div class="acts"><button class="btn" id="x3">この章をtxtで保存</button><button class="btn" id="x4">全章を1つのtxtで保存</button><button class="btn" id="x5">章ごとのtxtをZIPで保存</button><button class="btn" id="x6">Word(docx)で保存</button></div><div class="acts"><button class="btn lnk" id="x7">ルビや傍点をプレビューで確認</button></div>',function(r){
+  sheet('書き出しとバックアップ',bkHtml()+fl+'<div class="sec">投稿サイト向け</div><div class="acts"><button class="btn pri" id="x1">この章の本文をコピー</button><button class="btn" id="x2">全章をまとめてコピー</button></div><p class="sub">'+esc(sum)+'。整形は設定の「書き出しの整形」で変えられます。</p><div class="sec">ファイルで保存</div><div class="acts"><button class="btn" id="x3">この章をtxtで保存</button><button class="btn" id="x4">全章を1つのtxtで保存</button><button class="btn" id="x5">章ごとのtxtをZIPで保存</button><button class="btn" id="x6">Word(docx)で保存</button></div><div class="acts"><button class="btn lnk" id="x7">ルビや傍点をプレビューで確認</button></div>',function(r){
+    bkBind(r);
     if(FS){r.querySelector('#f1').onclick=openTxt;r.querySelector('#f2').onclick=function(){saveLinked(false).then(function(ok){if(ok)closeLayers()})};r.querySelector('#f3').onclick=function(){saveLinked(true).then(function(ok){if(ok)closeLayers()})};
       var f4=r.querySelector('#f4');if(f4){f4.onclick=reloadLinked;r.querySelector('#f5').onclick=unlinkTxt}}
     r.querySelector('#x1').onclick=function(){copyText(chapterTxt(c,o,false))};
@@ -465,21 +474,50 @@ function settingsSheet(){
    +'<div class="row"><span>章の区切り</span>'+sel('sep',[['blank','空行'],['star','* * *']])+'</div>'
    +'<div class="sec">バックアップ</div>'
    +sw('remind','バックアップのお知らせ','7日以上書き出していないときに知らせます')
-   +'<div class="acts"><button class="btn" id="bk-out">バックアップを書き出す(.json)</button><button class="btn" id="bk-in">バックアップを読み込む</button></div><input type="file" id="bk-f" accept=".json,application/json" hidden>'
-   +'<p class="sub">作品は、この端末の中に自動で保存されます。端末の初期化や、アプリ・ブラウザのデータの削除で失われるので、ときどきバックアップを書き出してください。</p>';
+   +'<div class="acts"><button class="btn" id="bk-open">バックアップの書き出し・読み込みを開く</button></div>'
+   +'<p class="sub">バックアップは、上の書き出しボタン(右上の矢印のアイコン)からも開けます。作品は、この端末の中に自動で保存されます。端末の初期化や、アプリ・ブラウザのデータの削除で失われるので、ときどきバックアップを書き出してください。</p>';
   sheet('設定',h,function(r){
     r.querySelectorAll('.seg').forEach(function(g){g.addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;var k=g.dataset.k,v=b.dataset.v;if(k==='lh')v=parseFloat(v);setSetting(k,v);g.querySelectorAll('button').forEach(function(x){x.setAttribute('aria-pressed',String(x===b))})})});
     r.querySelectorAll('input.sw').forEach(function(i){i.addEventListener('change',function(){setSetting(i.dataset.k,i.checked)})});
     r.querySelectorAll('select').forEach(function(s){s.addEventListener('change',function(){setSetting(s.dataset.k,s.value)})});
     r.querySelector('input[type=range]').addEventListener('input',function(e){var v=+e.target.value;D.s.size=v;r.querySelector('#szv').textContent=v+'px';applyView();schedSave()});
-    r.querySelector('#bk-out').onclick=backupOut;r.querySelector('#bk-in').onclick=function(){r.querySelector('#bk-f').click()};
-    r.querySelector('#bk-f').addEventListener('change',function(e){backupIn(e.target.files[0]);e.target.value=''});})}
+    r.querySelector('#bk-open').onclick=outSheet})}
 
-function backupOut(){var data={app:'genkocho',v:1,at:now(),s:D.s,works:D.works.map(function(w){return {id:w.id,title:w.title,cur:w.cur,chs:w.chs.map(function(c){return {id:c.id,title:c.title,text:c.text}})}})};
+function wkJson(w){return {id:w.id,title:w.title,cur:w.cur,chs:w.chs.map(function(c){return {id:c.id,title:c.title,text:c.text,at:c.at}})}}
+function dlBackup(){var data={app:'genkocho',v:1,at:now(),s:D.s,works:D.works.map(wkJson)};
   saveFile('Algernonバックアップ_'+dateStr()+'.json',JSON.stringify(data)).then(function(ok){if(ok){D.lastBackup=now();persist()}})}
-function backupIn(f){if(!f)return;var rd=new FileReader();rd.onload=function(){try{var d=JSON.parse(rd.result);if(!d||d.app!=='genkocho'||!d.works)throw 0;var n=0;
-    d.works.forEach(function(w){var chs=(w.chs||[]).map(function(c){return {id:uid(),title:String(c.title||'No title'),text:String(c.text||''),hist:[],snapAt:0,at:now()}});if(!chs.length)chs=[newChapter()];D.works.push({id:uid(),title:String(w.title||'読み込んだ作品'),chs:chs,cur:chs[0].id,trash:[],at:now()});n++});
-    persist();scheduleCloud();renderDrawer();closeLayers();toast(n+'作品を読み込みました(作品の一覧に追加)')}catch(e){toast('このファイルは読み込めません')}};rd.readAsText(f)}
+function backupOut(){if(!FS){dlBackup();return}hGet('__dir').then(function(d){if(d)folderOut(false);else dlBackup()})}
+async function folderOut(pick){var d=pick?null:await hGet('__dir');
+  try{
+    if(!d){try{d=await showDirectoryPicker({mode:'readwrite'})}catch(e){if(e&&e.name==='AbortError')return false;throw e}await hPut('__dir',d)}
+    else if(!(await grant(d,'readwrite'))){toast('フォルダへの書き込みが許可されませんでした');return false}
+    var used={},n=0;
+    for(var i=0;i<D.works.length;i++){var w=D.works[i],nm=safeName(w.title),k=nm,j=2;while(used[k.toLowerCase()])k=nm+'_'+(j++);used[k.toLowerCase()]=1;
+      var fh=await d.getFileHandle(k+'.json',{create:true}),wr=await fh.createWritable();
+      await wr.write(new Blob([JSON.stringify({app:'genkocho',v:1,at:now(),s:D.s,works:[wkJson(w)]})],{type:'application/json'}));await wr.close();n++}
+    D.lastBackup=now();persist();toast(n+'作品を「'+d.name+'」に書き出しました(同じ名前のファイルは上書き)');return true}
+  catch(e){toast('書き出せませんでした。フォルダを選び直してみてください');return false}}
+function importDoc(d){var added=0,merged=0;
+  d.works.forEach(function(w){
+    var ids={};D.works.forEach(function(x){x.chs.forEach(function(c){ids[c.id]=1})});
+    var loc=w.id?D.works.filter(function(x){return x.id===w.id})[0]:null;
+    if(loc){(w.chs||[]).forEach(function(c){var t=String(c.text||''),ex=c.id?loc.chs.filter(function(y){return y.id===c.id})[0]:null;
+        if(ex){if(ex.text!==t){snap(ex,true);ex.text=t;ex.title=String(c.title||ex.title);ex.at=now();delete UH[ex.id];merged++}}
+        else{var id=(c.id&&!ids[c.id])?c.id:uid();ids[id]=1;loc.chs.push({id:id,title:String(c.title||'No title'),text:t,hist:[],snapAt:0,at:now()});merged++}});
+      loc.at=now()}
+    else{var chs=(w.chs||[]).map(function(c){var id=(c.id&&!ids[c.id])?c.id:uid();ids[id]=1;return {id:id,title:String(c.title||'No title'),text:String(c.text||''),hist:[],snapAt:0,at:now()}});if(!chs.length)chs=[newChapter()];
+      D.works.push({id:(w.id&&!D.works.some(function(x){return x.id===w.id}))?w.id:uid(),title:String(w.title||'読み込んだ作品'),chs:chs,cur:chs[0].id,trash:[],at:now()});added++}});
+  return {added:added,merged:merged}}
+function importTexts(texts){var A=0,M=0,bad=0,w0=(D.works.length===1&&D.works[0].chs.length===1&&!D.works[0].chs[0].text&&!D.works[0].chs[0].hist.length)?D.works[0]:null;
+  texts.forEach(function(t){try{var d=JSON.parse(t);if(!d||d.app!=='genkocho'||!d.works)throw 0;var r=importDoc(d);A+=r.added;M+=r.merged}catch(e){bad++}});
+  if(w0&&A&&D.works.length>1){D.works=D.works.filter(function(x){return x!==w0});if(D.cur===w0.id)D.cur=D.works[0].id}
+  if(A||M){persist();scheduleCloud();renderAll();closeLayers()}
+  var m=[];if(A)m.push(A+'作品を追加');if(M)m.push('同じ作品の'+M+'章を反映(元の本文は履歴に残ります)');if(!A&&!M&&!bad)m.push('変更はありませんでした');if(bad)m.push(bad+'個のファイルは読み込めませんでした');
+  toast(m.join('、'))}
+function backupIn(fs){if(!fs)return;fs=[].slice.call(fs);if(!fs.length)return;Promise.all(fs.map(function(f){return f.text()})).then(importTexts)}
+async function folderIn(){var d=await hGet('__dir'),o={types:[{description:'Algernonのバックアップ',accept:{'application/json':['.json']}}],multiple:true};
+  if(d)o.startIn=d;var hs;try{hs=await showOpenFilePicker(o)}catch(e){return}
+  try{var fl=await Promise.all(hs.map(function(h){return h.getFile()}));backupIn(fl)}catch(e){toast('ファイルを開けませんでした')}}
 
 function scheduleCloud(){}
 
