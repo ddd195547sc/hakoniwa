@@ -1,0 +1,489 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<title>Algernon</title>
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#161616" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Algernon">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+html{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+[hidden]{display:none!important}
+/* layout: one full-height column. Slim top line, editor fills the rest, a quiet bar floats at the bottom and hides while typing. Chapters slide in from the left, tools rise from the bottom. */
+:root{--bg:#ffffff;--fg:#1a1a1a;--mute:#73736f;--line:#e6e6e3;--acc:#2f4a7a;--onacc:#ffffff;--accbg:#e9eef7;--sheet:#f6f6f4;--scrim:rgba(0,0,0,.32);--danger:#a33a2f;--hl:#fbeeb8;
+--ed-font:'Hiragino Mincho ProN','Hiragino Mincho Pro','Yu Mincho','YuMincho','BIZ UDPMincho','BIZ UDMincho','Noto Serif JP','Noto Serif CJK JP','Source Han Serif JP','MS PMincho',serif;--ed-size:17px;--ed-lh:2}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161616;--fg:#e8e8e5;--mute:#9a9a94;--line:#2c2c2a;--acc:#9db4e0;--onacc:#14202f;--accbg:#232b3a;--sheet:#1f1f1e;--scrim:rgba(0,0,0,.55);--danger:#e08a80;--hl:#4a4325;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#161616;--fg:#e8e8e5;--mute:#9a9a94;--line:#2c2c2a;--acc:#9db4e0;--onacc:#14202f;--accbg:#232b3a;--sheet:#1f1f1e;--scrim:rgba(0,0,0,.55);--danger:#e08a80;--hl:#4a4325;color-scheme:dark}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:-apple-system,'Hiragino Sans','Hiragino Kaku Gothic ProN','Yu Gothic','YuGothic','Meiryo','Noto Sans JP','Noto Sans CJK JP','Source Han Sans JP',sans-serif;font-size:15px;line-height:1.6;overflow:hidden;-webkit-text-size-adjust:100%}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;flex:none}
+#app{position:relative;height:100%;display:flex;flex-direction:column;overflow:hidden;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.ib{width:44px;height:44px;display:grid;place-items:center;background:none;border:0;color:var(--mute);border-radius:8px;padding:0}
+.ib:active{background:var(--accbg)}
+.ib.sm{width:40px;height:40px}
+#top{flex:none;height:48px;display:flex;align-items:center;justify-content:space-between;margin:0 -8px}
+#ttl{flex:1;min-width:0;height:48px;background:none;border:0;color:var(--mute);font-size:14px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 8px}
+#main{flex:1;min-height:0;position:relative}
+#ed{position:absolute;inset:0;outline:none;white-space:pre-wrap;line-break:strict;overflow-wrap:anywhere;font-family:var(--ed-font);font-size:var(--ed-size);line-height:var(--ed-lh);caret-color:var(--acc);padding:8px 0 68px;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;-webkit-user-select:text;user-select:text}
+#ed.v{writing-mode:vertical-rl;overflow-x:auto;overflow-y:hidden;padding:8px 8px 68px}
+#ed:empty::before{content:attr(data-ph);color:var(--mute);font-size:.8em}
+#ed::selection{background:var(--accbg)}
+#bar{position:absolute;left:max(16px,env(safe-area-inset-left,0px));right:max(16px,env(safe-area-inset-right,0px));bottom:0;height:54px;display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--bg);color:var(--mute);font-size:14px;transition:transform .18s ease,opacity .18s ease;z-index:5;margin:0 -8px;padding:0 8px 0 8px}
+#cnt{font-variant-numeric:tabular-nums;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#bar .ic{display:flex;flex:none}
+#bar .ib{width:42px;height:46px}
+#bar #fmt{display:none;gap:4px;align-items:center}
+#app.editing #bar #nav{display:none}
+#app.editing #bar #fmt{display:flex;flex:1}
+#app.editing #c2{display:none}
+#app.hidetop.editing #top{display:none}
+#reveal{display:none;position:absolute;top:0;left:50%;transform:translateX(-50%);width:80px;height:24px;background:none;border:0;padding:0;z-index:6}
+#reveal::before{content:"";position:absolute;left:50%;top:9px;width:36px;height:4px;margin-left:-18px;border-radius:2px;background:var(--mute)}
+#app.hidetop.editing #reveal{display:block}
+#app.hidetop.editing #ed{padding-top:26px}
+.tb{height:42px;min-width:56px;padding:0 12px;border:.5px solid var(--line);border-radius:10px;background:var(--bg);color:var(--fg);font-size:15px}
+.tb:active{background:var(--accbg)}
+@media (max-width:419px){#app.editing #cnt{display:none}}
+#scrim{position:absolute;inset:0;background:var(--scrim);opacity:0;pointer-events:none;transition:opacity .2s;z-index:20}
+#scrim.on{opacity:1;pointer-events:auto}
+#drawer{position:absolute;top:0;bottom:0;left:0;width:min(84%,320px);background:var(--sheet);z-index:30;display:flex;flex-direction:column;transform:translateX(-102%);visibility:hidden;transition:transform .22s ease,visibility 0s .22s;padding-left:max(16px,env(safe-area-inset-left,0px));padding-top:8px}
+#drawer.on{transform:none;visibility:visible;transition:transform .22s ease}
+#dw-head{display:block;width:100%;text-align:left;background:none;border:0;padding:10px 16px 10px 0;border-bottom:.5px solid var(--line)}
+#dw-head small{display:block;color:var(--mute);font-size:13px}
+#dw-title{font-size:17px;font-weight:500}
+#dw-list{flex:1;overflow-y:auto;padding:6px 0}
+.ch{display:flex;align-items:center;border-radius:8px;margin-right:8px}
+.ch.sel{background:var(--accbg);color:var(--acc)}
+.chm{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;flex:1;min-width:0;display:flex;justify-content:space-between;gap:8px;align-items:baseline;background:none;border:0;padding:12px 8px;text-align:left;font-size:16px}
+.chm .cn{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chm .cc{color:var(--mute);font-size:13px;font-variant-numeric:tabular-nums;flex:none}
+.ch.sel .chm .cc{color:var(--acc)}
+.ch .h{touch-action:none;cursor:grab;color:var(--mute);width:40px;height:40px;display:grid;place-items:center}
+.ch.drag{background:var(--accbg)}
+#dw-foot{padding:10px 16px 12px 0;border-top:.5px solid var(--line);display:flex;flex-direction:column;gap:8px}
+#dw-total{color:var(--mute);font-size:13px}
+#dw-foot .hint{color:var(--mute);font-size:13px}
+.btn{padding:12px 16px;border:.5px solid var(--line);background:var(--bg);border-radius:10px;font-size:15px;line-height:1.3;min-height:48px}
+.btn.pri{background:var(--acc);color:var(--onacc);border-color:var(--acc)}
+.btn.dng{color:var(--danger)}
+.btn.lnk{border-color:transparent;background:none;color:var(--acc)}
+.btn.add{display:flex;align-items:center;gap:6px;color:var(--acc);justify-content:center}
+#sheet{position:absolute;left:0;right:0;bottom:0;max-height:84%;background:var(--sheet);border-radius:14px 14px 0 0;z-index:40;display:flex;flex-direction:column;transform:translateY(102%);visibility:hidden;transition:transform .22s ease,visibility 0s .22s;padding:0 max(16px,env(safe-area-inset-right,0px)) 0 max(16px,env(safe-area-inset-left,0px))}
+#sheet.on{transform:none;visibility:visible;transition:transform .22s ease}
+#sh-h{display:flex;align-items:center;justify-content:space-between;height:54px;flex:none}
+#sh-t{font-size:17px;font-weight:500}
+#sh-b{overflow-y:auto;padding:0 0 max(18px,env(safe-area-inset-bottom,0px));-webkit-overflow-scrolling:touch}
+.sec{font-size:13px;color:var(--mute);margin:20px 0 2px;letter-spacing:.04em}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 0;border-bottom:.5px solid var(--line);font-size:15px}
+.row small{display:block;color:var(--mute);font-size:13px;line-height:1.5}
+.row>span{min-width:0}
+.seg{display:flex;border:.5px solid var(--line);border-radius:8px;overflow:hidden;flex:none}
+.seg button{background:var(--bg);border:0;padding:10px 14px;font-size:14px;border-left:.5px solid var(--line)}
+.seg button:first-child{border-left:0}
+.seg button[aria-pressed="true"]{background:var(--accbg);color:var(--acc)}
+select{background:var(--bg);border:.5px solid var(--line);border-radius:8px;padding:10px 10px;font-size:14px;max-width:62%}
+input[type=range]{width:46%;accent-color:var(--acc)}
+input[type=text]{width:100%;font-size:16px;padding:9px 10px;border:.5px solid var(--line);border-radius:8px;background:var(--bg)}
+input.sw{appearance:none;-webkit-appearance:none;width:40px;height:24px;border-radius:12px;background:var(--line);position:relative;flex:none;margin:0;transition:background .15s}
+input.sw::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:var(--bg);transition:transform .15s}
+input.sw:checked{background:var(--acc)}
+input.sw:checked::after{transform:translateX(16px)}
+.fl{display:block;font-size:13px;color:var(--mute);margin:12px 0 0}
+.fl input{margin-top:4px;color:var(--fg)}
+.acts{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 4px}
+.acts .btn{flex:1 1 140px}
+.sub{color:var(--mute);font-size:13px;line-height:1.6;margin:10px 0 0}
+.hit{padding:12px 0;border-bottom:.5px solid var(--line);font-size:15px;cursor:pointer;background:none;border-left:0;border-right:0;border-top:0;width:100%;text-align:left;display:block}
+.hit small{display:block;color:var(--mute);font-size:13px}
+.hit mark,.dv mark{background:var(--hl);color:inherit;border-radius:2px}
+.xrow{display:flex;gap:8px}
+.xrow .btn{flex:1}
+#prev{position:absolute;inset:0;background:var(--bg);z-index:50;display:flex;flex-direction:column;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+#pv-top{display:flex;justify-content:flex-end;height:48px;flex:none;margin:0 -8px}
+#pv{flex:1;min-height:0;overflow:auto;font-family:var(--ed-font);font-size:var(--ed-size);line-height:2.1;padding:6px 0 24px;overflow-wrap:anywhere;line-break:strict}
+#pv.v{writing-mode:vertical-rl;overflow-x:auto;overflow-y:hidden}
+#pv p{margin:0;min-height:1em}
+#pv rt{font-size:.5em}
+#pv em{font-style:normal;text-emphasis:filled sesame;-webkit-text-emphasis:filled sesame}
+#toast{position:absolute;left:50%;bottom:70px;transform:translate(-50%,12px);max-width:calc(100% - 32px);background:var(--fg);color:var(--bg);border-radius:12px;padding:12px 16px;font-size:14px;line-height:1.5;display:flex;gap:14px;align-items:center;opacity:0;pointer-events:none;transition:opacity .18s,transform .18s;z-index:60}
+#toast.on{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+#toast button{background:none;border:0;color:var(--bg);text-decoration:underline;padding:6px 4px;font-size:14px;flex:none}
+@media (prefers-reduced-motion:reduce){*{transition-duration:0s!important}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+<symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 7h9M17 7h3M4 12h3M11 12h9M4 17h11M19 17h1"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="17" r="2"/></symbol>
+<symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></symbol>
+<symbol id="i-redo" viewBox="0 0 24 24"><path d="M15 14l5-5-5-5"/><path d="M20 9H10a6 6 0 0 0 0 12h3"/></symbol>
+<symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/></symbol>
+<symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8v4.5l3 1.5"/></symbol>
+<symbol id="i-export" viewBox="0 0 24 24"><path d="M12 4v11M7.5 10.5L12 15l4.5-4.5M5 20h14"/></symbol>
+<symbol id="i-tate" viewBox="0 0 24 24"><path d="M6 4v16M12 4v10M18 4v16"/></symbol>
+<symbol id="i-yoko" viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h16"/></symbol>
+<symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+<symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+<symbol id="i-grip" viewBox="0 0 24 24"><path d="M9 6h.01M15 6h.01M9 12h.01M15 12h.01M9 18h.01M15 18h.01" stroke-width="2.6"/></symbol>
+<symbol id="i-more" viewBox="0 0 24 24"><path d="M5 12h.01M12 12h.01M19 12h.01" stroke-width="2.6"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7"/></symbol>
+</defs></svg>
+
+<div id="app">
+  <div id="top">
+    <button class="ib" id="bMenu" aria-label="章の一覧を開く"><svg class="i"><use href="#i-menu"/></svg></button>
+    <button id="ttl" aria-label="章の名前を変える"></button>
+    <button class="ib" id="bHist" aria-label="履歴"><svg class="i"><use href="#i-clock"/></svg></button>
+    <button class="ib" id="bSet" aria-label="設定を開く"><svg class="i"><use href="#i-sliders"/></svg></button>
+  </div>
+  <button id="reveal" aria-label="上のメニューを表示"></button>
+  <div id="main"><div id="ed" data-ph="" role="textbox" aria-multiline="true" aria-label="本文" lang="ja" spellcheck="false" autocapitalize="off" autocorrect="off"></div></div>
+  <div id="bar">
+    <span id="cnt"><span id="c1"></span><span id="c2"></span></span>
+    <span class="ic" id="nav">
+      <button class="ib" id="bUndo" aria-label="元に戻す"><svg class="i"><use href="#i-undo"/></svg></button>
+      <button class="ib" id="bRedo" aria-label="やり直す"><svg class="i"><use href="#i-redo"/></svg></button>
+      <button class="ib" id="bFind" aria-label="検索と置換"><svg class="i"><use href="#i-search"/></svg></button>
+      <button class="ib" id="bOut" aria-label="コピーと書き出し"><svg class="i"><use href="#i-export"/></svg></button>
+      <button class="ib" id="bDir" aria-label="縦書きに切り替え"><svg class="i"><use href="#i-tate"/></svg></button>
+    </span>
+    <span class="ic" id="fmt">
+      <button class="ib" id="bMenu2" aria-label="章の一覧を開く" style="margin-right:auto"><svg class="i"><use href="#i-menu"/></svg></button>
+      <button class="tb" id="bRuby" aria-label="ルビをつける">ルビ</button>
+      <button class="tb" id="bEm" aria-label="傍点をつける">傍点</button>
+      <button class="ib" id="bUndo2" aria-label="元に戻す"><svg class="i"><use href="#i-undo"/></svg></button>
+      <button class="ib" id="bRedo2" aria-label="やり直す"><svg class="i"><use href="#i-redo"/></svg></button>
+      <button class="ib" id="bDone" aria-label="入力を終える(上のメニューも戻ります)"><svg class="i"><use href="#i-check"/></svg></button>
+    </span>
+  </div>
+  <div id="scrim"></div>
+  <aside id="drawer" aria-label="章の一覧">
+    <button id="dw-head"><span id="dw-title"></span><small id="dw-sub"></small></button>
+    <div id="dw-list"></div>
+    <div id="dw-foot"><button class="btn add" id="dw-add"><svg class="i"><use href="#i-plus"/></svg>章を追加</button><span id="dw-total"></span><span class="hint">章を長押しすると名前を変えられます</span></div>
+  </aside>
+  <section id="sheet" role="dialog" aria-modal="true" aria-labelledby="sh-t">
+    <div id="sh-h"><span id="sh-t"></span><button class="ib" id="sh-x" aria-label="閉じる"><svg class="i"><use href="#i-x"/></svg></button></div>
+    <div id="sh-b"></div>
+  </section>
+  <section id="prev" hidden aria-label="プレビュー"><div id="pv-top"><button class="ib" id="pv-x" aria-label="プレビューを閉じる"><svg class="i"><use href="#i-x"/></svg></button></div><div id="pv"></div></section>
+  <div id="toast" role="status"><span id="tmsg"></span><button id="tact" hidden></button></div>
+</div>
+
+<script src="jszip.min.js"></script>
+<script id="pure">
+var MARK=/《《(.+?)》》|[|｜](.+?)《(.+?)》|([一-鿿々〆ヶ]+)《(.+?)》/g;
+function parseLine(s){var out=[],last=0,m;MARK.lastIndex=0;while((m=MARK.exec(s))){if(m.index>last)out.push({t:'x',s:s.slice(last,m.index)});if(m[1]!==undefined)out.push({t:'e',s:m[1]});else if(m[2]!==undefined)out.push({t:'r',b:m[2],r:m[3]});else out.push({t:'r',b:m[4],r:m[5]});last=MARK.lastIndex}if(last<s.length)out.push({t:'x',s:s.slice(last)});return out}
+function plain(t){return t.split('\n').map(function(l){return parseLine(l).map(function(p){return p.t==='r'?p.b:p.s}).join('')}).join('\n')}
+function countChars(t,m){var p=plain(t);if(m==='all')return p.length;if(m==='nl')return p.replace(/\n/g,'').length;return p.replace(/[\s　]/g,'').length}
+function genkou(t,per){per=per||20;var p=plain(t).replace(/\n+$/,'');if(!p)return{lines:0,sheets:0};var n=0;p.split('\n').forEach(function(l){n+=l.length?Math.ceil(l.length/per):1});return{lines:n,sheets:n/20}}
+function fmtN(n){return Number(n).toLocaleString('ja-JP')}
+function pad(n){return (n<10?'0':'')+n}
+function fmtT(t){var d=new Date(t);return pad(d.getMonth()+1)+'/'+pad(d.getDate())+' '+pad(d.getHours())+':'+pad(d.getMinutes())}
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function xe(s){return String(s).replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g,'').replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c]})}
+function hash32(s){var h=5381;for(var i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))|0;return (h>>>0).toString(36)+'.'+s.length}
+function safeName(s){var n=String(s||'').replace(/[\\\/:*?"<>|\u0000-\u001f]/g,'_').replace(/\s+/g,' ').trim().slice(0,60);return n||'無題'}
+function rubyConv(line,mode){return parseLine(line).map(function(p){if(p.t==='x')return p.s;if(p.t==='e')return mode==='keep'?'《《'+p.s+'》》':p.s;if(mode==='keep')return '|'+p.b+'《'+p.r+'》';if(mode==='paren')return p.b+'（'+p.r+'）';return p.b}).join('')}
+function layoutLines(text,o){var src=String(text||'').replace(/\r\n?/g,'\n').replace(/\n+$/,'');if(!src)return[];var out=[],prev=false;src.split('\n').forEach(function(l){if(l.trim()===''){out.push('');prev=false;return}var lead=/^[「『（【〈“　]/.test(plain(l));if(o.indent&&!lead)l='　'+l;if(o.blank&&prev)out.push('');out.push(l);prev=true});return out}
+function chapterTxt(ch,o,withTitle){var body=layoutLines(ch.text,o).map(function(l){return rubyConv(l,o.ruby)}).join('\n');return (withTitle?ch.title+'\n\n':'')+body}
+function workTxt(w,o){var sep=o.sep==='star'?'\n\n* * *\n\n':'\n\n\n';return w.chs.map(function(c){return chapterTxt(c,o,o.titles)}).join(sep)+'\n'}
+function tr(s,rpr){return s?'<w:r>'+(rpr||'')+'<w:t xml:space="preserve">'+xe(s)+'</w:t></w:r>':''}
+function rubyXml(b,r){return '<w:r><w:ruby><w:rubyPr><w:rubyAlign w:val="distributeSpace"/><w:hps w:val="10"/><w:hpsRaise w:val="20"/><w:hpsBaseText w:val="21"/><w:lid w:val="ja-JP"/></w:rubyPr><w:rt><w:r><w:rPr><w:sz w:val="10"/></w:rPr><w:t xml:space="preserve">'+xe(r)+'</w:t></w:r></w:rt><w:rubyBase><w:r><w:t xml:space="preserve">'+xe(b)+'</w:t></w:r></w:rubyBase></w:ruby></w:r>'}
+function runsXml(line,mode){return parseLine(line).map(function(p){if(p.t==='x')return tr(p.s);if(p.t==='e')return mode==='keep'?tr(p.s,'<w:rPr><w:em w:val="dot"/></w:rPr>'):tr(p.s);if(mode==='keep')return rubyXml(p.b,p.r);if(mode==='paren')return tr(p.b+'（'+p.r+'）');return tr(p.b)}).join('')}
+function paraXml(inner,style,center){var pp=(style?'<w:pStyle w:val="'+style+'"/>':'')+(center?'<w:jc w:val="center"/>':'');return '<w:p>'+(pp?'<w:pPr>'+pp+'</w:pPr>':'')+inner+'</w:p>'}
+function docXml(w,o){var b=paraXml(tr(w.title),'Title');w.chs.forEach(function(c,i){if(i>0){b+=o.sep==='star'?paraXml(tr('* * *'),'',true):'<w:p><w:r><w:br w:type="page"/></w:r></w:p>'}b+=paraXml(tr(c.title),'Heading1');layoutLines(c.text,o).forEach(function(l){b+=paraXml(runsXml(l,o.ruby))})});return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>'+b+'<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1418" w:right="1418" w:bottom="1418" w:left="1418" w:header="851" w:footer="992" w:gutter="0"/></w:sectPr></w:body></w:document>'}
+var DX_CT='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/></Types>';
+var DX_RELS='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>';
+var DX_DRELS='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>';
+var DX_STY='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:docDefaults><w:rPrDefault><w:rPr><w:rFonts w:ascii="Yu Mincho" w:hAnsi="Yu Mincho" w:eastAsia="Yu Mincho" w:cs="Yu Mincho"/><w:sz w:val="21"/><w:szCs w:val="21"/><w:lang w:val="en-US" w:eastAsia="ja-JP"/></w:rPr></w:rPrDefault><w:pPrDefault><w:pPr><w:spacing w:after="0" w:line="360" w:lineRule="auto"/></w:pPr></w:pPrDefault></w:docDefaults><w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/><w:qFormat/></w:style><w:style w:type="paragraph" w:styleId="Title"><w:name w:val="Title"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:qFormat/><w:pPr><w:jc w:val="center"/><w:spacing w:before="240" w:after="480"/></w:pPr><w:rPr><w:sz w:val="40"/><w:szCs w:val="40"/></w:rPr></w:style><w:style w:type="paragraph" w:styleId="Heading1"><w:name w:val="heading 1"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:qFormat/><w:pPr><w:keepNext/><w:spacing w:before="360" w:after="240"/><w:outlineLvl w:val="0"/></w:pPr><w:rPr><w:b/><w:bCs/><w:sz w:val="30"/><w:szCs w:val="30"/></w:rPr></w:style></w:styles>';
+</script>
+
+<script>
+(function(){
+'use strict';
+var LS='genkocho.v1',LSP='genkocho.v1.prev';
+function $(id){return document.getElementById(id)}
+function uid(){return 'x'+Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
+function now(){return Date.now()}
+function newChapter(t){return {id:uid(),title:t||'No title',text:'',hist:[],snapAt:0,at:now()}}
+function newWork(t){var c=newChapter();return {id:uid(),title:t||'無題の作品',chs:[c],cur:c.id,trash:[],at:now()}}
+function defaults(){var w=newWork('無題の作品');return {v:1,works:[w],cur:w.id,s:{theme:'a',hidetop:true,vkeys:true,vkeyrev:false,dir:'h',font:'m',size:17,lh:2,temph:false,cm:'ns',ind:true,blank:false,ruby:'keep',titles:true,sep:'blank',cloud:false,remind:true},lastBackup:0,cloudHash:{},m2:1,at:0}}
+function load(){var raw=null,d=null;try{raw=localStorage.getItem(LS)}catch(e){}
+  if(raw){try{d=JSON.parse(raw)}catch(e){try{localStorage.setItem(LS+'.bad',raw)}catch(e2){}}}
+  var base=defaults();if(!d||!d.works||!d.works.length)return base;
+  d.s=Object.assign({},base.s,d.s||{});
+  d.works.forEach(function(w){if(!w.chs||!w.chs.length)w.chs=[newChapter()];w.chs.forEach(function(c){c.hist=c.hist||[];c.text=c.text||'';c.title=c.title||'No title';if(!d.m2&&/^第[0-9〇一二三四五六七八九十百]+章$/.test(c.title))c.title='No title';c.id=c.id||uid()});if(!w.chs.some(function(c){return c.id===w.cur}))w.cur=w.chs[0].id;w.trash=w.trash||[];w.title=w.title||'無題の作品'});
+  if(!d.works.some(function(w){return w.id===d.cur}))d.cur=d.works[0].id;
+  d.m2=1;d.cloudHash=d.cloudHash||{};d.lastBackup=d.lastBackup||0;return d}
+var hostTheme=document.documentElement.getAttribute('data-theme');
+var D=load();
+function W(){return D.works.filter(function(w){return w.id===D.cur})[0]||D.works[0]}
+function C(){var w=W();return w.chs.filter(function(c){return c.id===w.cur})[0]||w.chs[0]}
+
+var ed=$('ed'),app=$('app'),drawer=$('drawer'),sheetEl=$('sheet');
+var storageOk=true;
+
+var saveT=0,dirty=false;
+function pruneHist(n){D.works.forEach(function(w){w.chs.forEach(function(c){if(c.hist.length>n)c.hist.length=n})})}
+function persist(){clearTimeout(saveT);try{localStorage.setItem(LS,JSON.stringify(D));dirty=false;return true}catch(e){pruneHist(3);try{localStorage.setItem(LS,JSON.stringify(D));dirty=false;toast('保存容量が少なくなったため、古い履歴を整理しました');return true}catch(e2){if(storageOk){storageOk=false;toast('この端末のブラウザに保存できません。バックアップを書き出してください')}return false}}}
+function schedSave(){dirty=true;clearTimeout(saveT);saveT=setTimeout(persist,700)}
+document.addEventListener('visibilitychange',function(){if(document.hidden&&dirty)persist()});
+window.addEventListener('pagehide',function(){if(dirty)persist()});
+
+var tT=0;
+function toast(msg,act){var t=$('toast');$('tmsg').textContent=msg;var b=$('tact');if(act){b.hidden=false;b.textContent=act.label;b.onclick=function(){t.classList.remove('on');act.fn()}}else{b.hidden=true;b.onclick=null}t.classList.add('on');clearTimeout(tT);tT=setTimeout(function(){t.classList.remove('on')},act?6500:3200)}
+
+function getText(el){var s='';(function w(n){for(var c=n.firstChild;c;c=c.nextSibling){if(c.nodeType===3)s+=c.nodeValue;else if(c.nodeName==='BR')s+='\n';else{if(/^(DIV|P)$/.test(c.nodeName)&&s&&s.slice(-1)!=='\n')s+='\n';w(c)}}})(el);return s.replace(/ /g,' ')}
+function setEditor(t){ed.textContent=t}
+function caretEnd(){var r=document.createRange();r.selectNodeContents(ed);r.collapse(false);var s=getSelection();s.removeAllRanges();s.addRange(r)}
+function reveal(r){var rc=r.getClientRects()[0]||r.getBoundingClientRect(),er=ed.getBoundingClientRect(),m=64;
+  if(rc.bottom>er.bottom-m)ed.scrollTop+=rc.bottom-(er.bottom-m);if(rc.top<er.top+m)ed.scrollTop-=(er.top+m)-rc.top;
+  if(rc.left<er.left+m)ed.scrollLeft-=(er.left+m)-rc.left;if(rc.right>er.right-m)ed.scrollLeft+=rc.right-(er.right-m)}
+function selectRange(a,b){var w=document.createTreeWalker(ed,NodeFilter.SHOW_TEXT),n,pos=0,sn,so,en,eo;
+  while((n=w.nextNode())){var l=n.nodeValue.length;if(sn===undefined&&a<=pos+l){sn=n;so=a-pos}if(en===undefined&&b<=pos+l){en=n;eo=b-pos;break}pos+=l}
+  if(!sn||!en)return;var r=document.createRange();r.setStart(sn,so);r.setEnd(en,eo);var s=getSelection();s.removeAllRanges();s.addRange(r);reveal(r)}
+
+var UH={};
+function uh(){var c=C();return UH[c.id]||(UH[c.id]={st:[c.text],i:0})}
+var uT=0;
+function pushUndo(){var u=uh(),t=C().text;if(u.st[u.i]===t)return;u.st=u.st.slice(0,u.i+1);u.st.push(t);if(u.st.length>200)u.st.shift();u.i=u.st.length-1}
+function applyText(t){var c=C();c.text=t;c.at=now();setEditor(t);if(document.activeElement===ed)caretEnd();afterEdit(true)}
+function undo(){clearTimeout(uT);pushUndo();var u=uh();if(u.i>0){u.i--;applyText(u.st[u.i])}}
+function redo(){clearTimeout(uT);var u=uh();if(u.i<u.st.length-1){u.i++;applyText(u.st[u.i])}}
+
+function snap(ch,force){var last=ch.hist[0];if(last&&last.text===ch.text)return false;if(!ch.text&&!force)return false;ch.hist.unshift({t:now(),text:ch.text});if(ch.hist.length>15)ch.hist.length=15;ch.snapAt=now();return true}
+function maybeSnap(){var c=C();if(now()-c.snapAt>5*60*1000){var last=c.hist[0];if(c.text.length>=20&&(!last||Math.abs(last.text.length-c.text.length)>=10||last.text!==c.text))snap(c)}}
+
+var cT=0;
+function updateCount(){var c=C(),n=countChars(c.text,D.s.cm),g=genkou(c.text);$('c1').textContent=fmtN(n)+'字';$('c2').textContent=' ・ '+g.sheets.toFixed(1)+'枚'}
+function afterEdit(prog){clearTimeout(cT);cT=setTimeout(updateCount,120);schedSave();scheduleCloud();clearTimeout(uT);uT=setTimeout(pushUndo,500);if(!prog)app.classList.add('typing');maybeSnap()}
+ed.addEventListener('input',function(){var c=C();c.text=getText(ed);c.at=now();W().at=now();afterEdit(false)});
+ed.addEventListener('beforeinput',function(e){if(e.inputType==='historyUndo'){e.preventDefault();undo()}else if(e.inputType==='historyRedo'){e.preventDefault();redo()}});
+ed.addEventListener('paste',function(e){e.preventDefault();var t=(e.clipboardData||window.clipboardData).getData('text/plain').replace(/\r\n?/g,'\n');document.execCommand('insertText',false,t)});
+$('main').addEventListener('pointerup',function(){app.classList.remove('typing')});
+ed.addEventListener('blur',function(){app.classList.remove('typing')});
+
+var tempOn=false;
+function applyView(){var s=D.s;var r=document.documentElement.style;
+  r.setProperty('--ed-font',s.font==='g'?"-apple-system,'Hiragino Sans','Hiragino Kaku Gothic ProN','Yu Gothic','YuGothic','Meiryo','Noto Sans JP','Noto Sans CJK JP','Source Han Sans JP',sans-serif":"'Hiragino Mincho ProN','Hiragino Mincho Pro','Yu Mincho','YuMincho','BIZ UDPMincho','BIZ UDMincho','Noto Serif JP','Noto Serif CJK JP','Source Han Serif JP','MS PMincho',serif");
+  r.setProperty('--ed-size',s.size+'px');r.setProperty('--ed-lh',String(s.lh));
+  app.classList.toggle('hidetop',!!s.hidetop);
+  var rt=document.documentElement;if(s.theme==='l')rt.setAttribute('data-theme','light');else if(s.theme==='d')rt.setAttribute('data-theme','dark');else if(hostTheme)rt.setAttribute('data-theme',hostTheme);else rt.removeAttribute('data-theme');
+  var v=s.dir==='v'&&!(s.temph&&tempOn);ed.classList.toggle('v',v);
+  var b=$('bDir');b.setAttribute('aria-label',s.dir==='v'?'横書きに切り替え':'縦書きに切り替え');b.innerHTML='<svg class="i"><use href="#i-'+(s.dir==='v'?'yoko':'tate')+'"/></svg>'}
+ed.addEventListener('focus',function(){if(D.s.temph&&D.s.dir==='v'){tempOn=true;applyView();var s=getSelection();if(s.rangeCount)setTimeout(function(){reveal(s.getRangeAt(0))},0)}});
+ed.addEventListener('blur',function(){if(tempOn){tempOn=false;applyView()}});
+function resetScroll(){ed.scrollTop=0;ed.scrollLeft=0}
+
+function renderTitle(){$('ttl').textContent=C().title}
+function renderDrawer(){var w=W();$('dw-title').textContent=w.title;$('dw-sub').textContent=w.chs.length+'章 ・ 作品を切り替える';
+  var h='',tot=0,lines=0;w.chs.forEach(function(c){var n=countChars(c.text,D.s.cm);tot+=n;lines+=genkou(c.text).lines;var sel=c.id===w.cur;
+    h+='<div class="ch'+(sel?' sel':'')+'" data-id="'+c.id+'"><button class="chm" data-act="open"><span class="cn">'+esc(c.title)+'</span><span class="cc">'+fmtN(n)+'</span></button><button class="ib sm" data-act="menu" aria-label="章の設定"><svg class="i"><use href="#i-more"/></svg></button><span class="h" aria-label="ドラッグして並べ替え"><svg class="i"><use href="#i-grip"/></svg></span></div>'});
+  $('dw-list').innerHTML=h;$('dw-total').textContent='全体 '+fmtN(tot)+'字 ・ '+(lines/20).toFixed(1)+'枚'}
+function renderAll(){applyView();renderTitle();setEditor(C().text);resetScroll();updateCount();renderDrawer()}
+
+function openChapter(id){var w=W();if(!w.chs.some(function(c){return c.id===id}))return;w.cur=id;renderAll();schedSave();closeLayers()}
+function closeLayers(){drawer.classList.remove('on');sheetEl.classList.remove('on');$('scrim').classList.remove('on');$('prev').hidden=true}
+function openDrawer(){renderDrawer();sheetEl.classList.remove('on');drawer.classList.add('on');$('scrim').classList.add('on')}
+function sheet(title,html,bind){drawer.classList.remove('on');$('sh-t').textContent=title;var b=$('sh-b');b.innerHTML=html;sheetEl.classList.add('on');$('scrim').classList.add('on');b.scrollTop=0;if(bind)bind(b);$('sh-x').focus({preventScroll:true})}
+$('scrim').addEventListener('click',closeLayers);$('sh-x').addEventListener('click',closeLayers);$('pv-x').addEventListener('click',closeLayers);
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeLayers()});
+$('bMenu').addEventListener('click',openDrawer);
+
+var lpFired=false,lpT=0,lpX=0,lpY=0;
+$('dw-list').addEventListener('pointerdown',function(e){lpFired=false;var b=e.target.closest('.chm');if(!b)return;var row=b.closest('.ch');lpX=e.clientX;lpY=e.clientY;clearTimeout(lpT);lpT=setTimeout(function(){lpFired=true;try{if(navigator.vibrate)navigator.vibrate(12)}catch(x){}chapterSheet(row.dataset.id,true)},500)});
+$('dw-list').addEventListener('pointermove',function(e){if(lpT&&(Math.abs(e.clientX-lpX)>8||Math.abs(e.clientY-lpY)>8)){clearTimeout(lpT);lpT=0}});
+$('dw-list').addEventListener('pointerup',function(){clearTimeout(lpT);lpT=0});
+$('dw-list').addEventListener('pointercancel',function(){clearTimeout(lpT);lpT=0});
+$('dw-list').addEventListener('contextmenu',function(e){e.preventDefault()});
+$('dw-list').addEventListener('click',function(e){if(lpFired){lpFired=false;return}var b=e.target.closest('button');if(!b)return;var row=b.closest('.ch');if(!row)return;if(b.dataset.act==='open')openChapter(row.dataset.id);else if(b.dataset.act==='menu')chapterSheet(row.dataset.id)});
+var drag=null;
+$('dw-list').addEventListener('pointerdown',function(e){var h=e.target.closest('.h');if(!h)return;drag=h.parentNode;drag.classList.add('drag');h.setPointerCapture(e.pointerId);e.preventDefault()});
+$('dw-list').addEventListener('pointermove',function(e){if(!drag)return;var el=document.elementFromPoint(e.clientX,e.clientY),row=el&&el.closest?el.closest('.ch'):null,ul=$('dw-list');if(row&&row!==drag&&row.parentNode===ul){var r=row.getBoundingClientRect();if(e.clientY<r.top+r.height/2)ul.insertBefore(drag,row);else ul.insertBefore(drag,row.nextSibling)}});
+function endDrag(){if(!drag)return;drag.classList.remove('drag');drag=null;var w=W(),ids=[].map.call($('dw-list').children,function(n){return n.dataset.id}),map={};w.chs.forEach(function(c){map[c.id]=c});w.chs=ids.map(function(i){return map[i]}).filter(Boolean);w.at=now();persist();scheduleCloud();renderDrawer()}
+$('dw-list').addEventListener('pointerup',endDrag);$('dw-list').addEventListener('pointercancel',endDrag);
+$('dw-add').addEventListener('click',function(){var w=W(),c=newChapter();w.chs.push(c);w.cur=c.id;w.at=now();persist();renderAll();closeLayers();setTimeout(function(){ed.focus()},60)});
+$('dw-head').addEventListener('click',worksSheet);
+$('ttl').addEventListener('click',function(){chapterSheet(C().id)});
+
+function chapterSheet(id,sel){var w=W(),c=w.chs.filter(function(x){return x.id===id})[0];if(!c)return;
+  sheet('章の設定','<label class="fl">章の名前<input id="rn" type="text" maxlength="60" value="'+esc(c.title)+'"></label><div class="acts"><button class="btn pri" id="rn-ok">名前を保存</button><button class="btn dng" id="rn-del">この章を削除</button></div><p class="sub">削除した章は、直後の「元に戻す」で復元できます。</p>',function(r){
+    function ok(){c.title=r.querySelector('#rn').value.trim()||c.title;persist();renderTitle();renderDrawer();scheduleCloud();closeLayers()}
+    r.querySelector('#rn-ok').onclick=ok;r.querySelector('#rn').addEventListener('keydown',function(e){if(e.key==='Enter')ok()});
+    if(sel)setTimeout(function(){var i=r.querySelector('#rn');i.focus();i.select()},280);
+    r.querySelector('#rn-del').onclick=function(){delChapter(id)}})}
+function delChapter(id){var w=W();if(w.chs.length<2){closeLayers();toast('章が1つだけのときは削除できません');return}
+  var i=w.chs.map(function(c){return c.id}).indexOf(id),c=w.chs.splice(i,1)[0];w.trash.unshift({c:c,i:i});if(w.trash.length>10)w.trash.length=10;
+  if(w.cur===id)w.cur=w.chs[Math.min(i,w.chs.length-1)].id;w.at=now();persist();scheduleCloud();closeLayers();renderAll();
+  toast('「'+c.title+'」を削除しました',{label:'元に戻す',fn:function(){var k=w.trash.map(function(t){return t.c.id}).indexOf(c.id);if(k<0)return;var t=w.trash.splice(k,1)[0];w.chs.splice(Math.min(t.i,w.chs.length),0,t.c);w.cur=t.c.id;persist();scheduleCloud();renderAll()}})}
+
+function worksSheet(){var h='<label class="fl">いまの作品の名前<input id="wn" type="text" maxlength="60" value="'+esc(W().title)+'"></label><div class="acts"><button class="btn" id="wn-ok">名前を保存</button></div><div class="sec">作品の一覧</div>';
+  D.works.forEach(function(w){var n=0;w.chs.forEach(function(c){n+=countChars(c.text,D.s.cm)});h+='<button class="hit" data-w="'+w.id+'">'+(w.id===D.cur?'● ':'')+esc(w.title)+'<small>'+w.chs.length+'章 ・ '+fmtN(n)+'字</small></button>'});
+  h+='<div class="acts"><button class="btn add" id="w-new"><svg class="i"><use href="#i-plus"/></svg>新しい作品</button><button class="btn dng" id="w-del">この作品を削除</button></div>';
+  sheet('作品',h,function(r){
+    r.querySelector('#wn-ok').onclick=function(){W().title=r.querySelector('#wn').value.trim()||W().title;persist();scheduleCloud();renderDrawer();closeLayers()};
+    r.querySelectorAll('.hit').forEach(function(b){b.onclick=function(){D.cur=b.dataset.w;persist();renderAll();closeLayers()}});
+    r.querySelector('#w-new').onclick=function(){var w=newWork('新しい作品');D.works.push(w);D.cur=w.id;persist();scheduleCloud();renderAll();closeLayers()};
+    r.querySelector('#w-del').onclick=function(){if(D.works.length<2){toast('作品が1つだけのときは削除できません');return}
+      var w=W();sheet('作品を削除','<p>「'+esc(w.title)+'」と、その章をすべて削除します。この操作は元に戻せません。先にバックアップを書き出すことをおすすめします。</p><div class="acts"><button class="btn dng" id="cf-ok">削除する</button><button class="btn" id="cf-no">やめる</button></div>',function(q){
+        q.querySelector('#cf-no').onclick=closeLayers;q.querySelector('#cf-ok').onclick=function(){D.works=D.works.filter(function(x){return x.id!==w.id});D.cur=D.works[0].id;persist();scheduleCloud();renderAll();closeLayers();toast('作品を削除しました')}})}})}
+
+function histSheet(){var c=C();var h='<div class="acts"><button class="btn pri" id="hs">いまの状態を保存</button></div>';
+  if(!c.hist.length)h+='<p class="sub">まだ履歴がありません。書いていると5分ごとに自動で残ります。</p>';
+  c.hist.forEach(function(s,i){h+='<div class="row"><span>'+fmtT(s.t)+'<small>'+fmtN(countChars(s.text,D.s.cm))+'字 ・ '+esc(s.text.replace(/\s+/g,' ').slice(0,18))+'</small></span><button class="btn" data-i="'+i+'">戻す</button></div>'});
+  if(c.hist.length)h+='<div class="acts"><button class="btn lnk" id="hc">この章の履歴をすべて消す</button></div>';
+  sheet('履歴',h,function(r){
+    r.querySelector('#hs').onclick=function(){if(snap(c,true)){persist();toast('保存しました');histSheet()}else toast('前回の保存から変更がありません')};
+    r.querySelectorAll('button[data-i]').forEach(function(b){b.onclick=function(){var t=c.hist[+b.dataset.i].text;clearTimeout(uT);pushUndo();snap(c,true);applyText(t);pushUndo();persist();closeLayers();toast('以前の状態に戻しました')}});
+    var hc=r.querySelector('#hc');if(hc)hc.onclick=function(){c.hist=[];persist();histSheet()}})}
+
+function findSheet(){var scope='c';
+  sheet('検索と置換','<label class="fl">検索<input id="q" type="text" autocomplete="off"></label><label class="fl">置換後<input id="rp" type="text" autocomplete="off"></label><div class="row"><span>範囲</span><div class="seg" id="sc"><button data-v="c" aria-pressed="true">この章</button><button data-v="w" aria-pressed="false">作品全体</button></div></div><div class="acts"><button class="btn pri" id="ra">すべて置換</button></div><p class="sub" id="qn"></p><div id="qr"></div>',function(r){
+    var q=r.querySelector('#q'),rp=r.querySelector('#rp'),qr=r.querySelector('#qr'),qn=r.querySelector('#qn'),T=0;
+    function targets(){return scope==='c'?[C()]:W().chs}
+    function run(){var s=q.value,out='',total=0,shown=0;if(!s){qr.innerHTML='';qn.textContent='';return}
+      targets().forEach(function(c){var t=c.text,i=0;while((i=t.indexOf(s,i))>=0){total++;if(shown<40){shown++;out+='<button class="hit" data-c="'+c.id+'" data-i="'+i+'"><small>'+esc(c.title)+'</small>'+esc(t.slice(Math.max(0,i-12),i).replace(/\n/g,' '))+'<mark>'+esc(s)+'</mark>'+esc(t.slice(i+s.length,i+s.length+16).replace(/\n/g,' '))+'</button>'}i+=s.length}});
+      qn.textContent=total?total+'件'+(total>shown?'(先頭の'+shown+'件を表示)':''):'見つかりません';qr.innerHTML=out}
+    q.addEventListener('input',function(){clearTimeout(T);T=setTimeout(run,150)});
+    r.querySelector('#sc').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;scope=b.dataset.v;r.querySelectorAll('#sc button').forEach(function(x){x.setAttribute('aria-pressed',String(x===b))});run()});
+    qr.addEventListener('click',function(e){var b=e.target.closest('.hit');if(!b)return;var id=b.dataset.c,i=+b.dataset.i,len=q.value.length;if(id!==C().id){W().cur=id;renderAll()}closeLayers();ed.focus({preventScroll:true});selectRange(i,i+len)});
+    r.querySelector('#ra').onclick=function(){var s=q.value;if(!s){toast('検索する語を入れてください');return}var n=0,rep=rp.value,cur=C().id,touched=false;
+      targets().forEach(function(c){var k=c.text.split(s).length-1;if(k){snap(c,true);c.text=c.text.split(s).join(rep);c.at=now();n+=k;if(c.id===cur)touched=true}});
+      if(!n){toast('見つかりません');return}if(touched){setEditor(C().text);pushUndo()}W().at=now();persist();scheduleCloud();updateCount();renderDrawer();run();toast(n+'件を置換しました。履歴から元に戻せます')}})}
+
+function eo(){return {indent:D.s.ind,blank:D.s.blank,ruby:D.s.ruby,titles:D.s.titles,sep:D.s.sep}}
+async function copyText(t){try{await navigator.clipboard.writeText(t);toast('コピーしました');return}catch(e){}
+  var ta=document.createElement('textarea');ta.value=t;ta.setAttribute('readonly','');ta.style.cssText='position:fixed;left:-999px;top:0;opacity:0';document.body.appendChild(ta);ta.select();ta.setSelectionRange(0,t.length);var ok=false;try{ok=document.execCommand('copy')}catch(e2){}document.body.removeChild(ta);toast(ok?'コピーしました':'コピーできませんでした')}
+async function saveFile(name,data){
+  var blob=(data instanceof Blob)?data:new Blob([data],{type:/\.json$/i.test(name)?'application/json':'text/plain;charset=utf-8'});
+  try{var f=new File([blob],name,{type:blob.type||'application/octet-stream'});
+    if(navigator.canShare&&navigator.canShare({files:[f]})&&/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)){await navigator.share({files:[f],title:name});toast('保存しました');return true}
+  }catch(e){if(e&&e.name==='AbortError')return false}
+  try{var u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(function(){URL.revokeObjectURL(u)},30000);toast('保存しました');return true}
+  catch(e){toast('保存できませんでした');return false}}
+function dateStr(){var d=new Date();return d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())}
+function outSheet(){var o=eo(),w=W(),c=C();
+  var sum='段落頭の全角スペース:'+(o.indent?'あり':'なし')+' ／ 段落間の空行:'+(o.blank?'あり':'なし')+' ／ ルビ・傍点:'+({keep:'そのまま',paren:'括弧書き',strip:'外す'}[o.ruby]);
+  sheet('コピーと書き出し','<div class="sec">投稿サイト向け</div><div class="acts"><button class="btn pri" id="x1">この章の本文をコピー</button><button class="btn" id="x2">全章をまとめてコピー</button></div><p class="sub">'+esc(sum)+'。整形は設定の「書き出しの整形」で変えられます。</p><div class="sec">ファイルで保存</div><div class="acts"><button class="btn" id="x3">この章をtxtで保存</button><button class="btn" id="x4">全章を1つのtxtで保存</button><button class="btn" id="x5">章ごとのtxtをZIPで保存</button><button class="btn" id="x6">Word(docx)で保存</button></div><div class="acts"><button class="btn lnk" id="x7">ルビや傍点をプレビューで確認</button></div>',function(r){
+    r.querySelector('#x1').onclick=function(){copyText(chapterTxt(c,o,false))};
+    r.querySelector('#x2').onclick=function(){copyText(workTxt(w,o))};
+    r.querySelector('#x3').onclick=function(){saveFile(safeName(c.title)+'.txt',chapterTxt(c,o,false)+'\n')};
+    r.querySelector('#x4').onclick=function(){saveFile(safeName(w.title)+'.txt',workTxt(w,o))};
+    r.querySelector('#x5').onclick=function(){if(!window.JSZip){toast('ZIPを作成できませんでした');return}var z=new JSZip();w.chs.forEach(function(ch,i){z.file(pad(i+1)+'_'+safeName(ch.title)+'.txt',chapterTxt(ch,o,false)+'\n')});z.generateAsync({type:'blob',compression:'DEFLATE'}).then(function(b){saveFile(safeName(w.title)+'.zip',b)},function(){toast('ZIPを作成できませんでした')})};
+    r.querySelector('#x6').onclick=function(){if(!window.JSZip){toast('docxを作成できませんでした');return}var z=new JSZip();z.file('[Content_Types].xml',DX_CT);z.file('_rels/.rels',DX_RELS);z.file('word/document.xml',docXml(w,o));z.file('word/_rels/document.xml.rels',DX_DRELS);z.file('word/styles.xml',DX_STY);z.generateAsync({type:'blob',compression:'DEFLATE'}).then(function(b){saveFile(safeName(w.title)+'.docx',b)},function(){toast('docxを作成できませんでした')})};
+    r.querySelector('#x7').onclick=previewOpen})}
+
+function previewOpen(){closeLayers();var h='';C().text.replace(/\n+$/,'').split('\n').forEach(function(l){h+='<p>'+(l.trim()===''?'&nbsp;':parseLine(l).map(function(p){return p.t==='x'?esc(p.s):p.t==='e'?'<em>'+esc(p.s)+'</em>':'<ruby>'+esc(p.b)+'<rt>'+esc(p.r)+'</rt></ruby>'}).join(''))+'</p>'});
+  var pv=$('pv');pv.innerHTML=h||'<p>(本文がありません)</p>';pv.classList.toggle('v',D.s.dir==='v');$('prev').hidden=false;pv.scrollTop=0;pv.scrollLeft=0;$('pv-x').focus({preventScroll:true})}
+
+function seg(k,opts){return '<div class="seg" data-k="'+k+'">'+opts.map(function(o){return '<button data-v="'+o[0]+'" aria-pressed="'+(String(D.s[k])===String(o[0]))+'">'+o[1]+'</button>'}).join('')+'</div>'}
+function sw(k,label,sub){return '<label class="row"><span>'+label+(sub?'<small>'+sub+'</small>':'')+'</span><input type="checkbox" class="sw" role="switch" data-k="'+k+'"'+(D.s[k]?' checked':'')+'></label>'}
+function sel(k,opts){return '<select data-k="'+k+'" aria-label="'+k+'">'+opts.map(function(o){return '<option value="'+o[0]+'"'+(String(D.s[k])===String(o[0])?' selected':'')+'>'+o[1]+'</option>'}).join('')+'</select>'}
+function setSetting(k,v){D.s[k]=v;if(k==='cm'){updateCount();renderDrawer()}applyView();persist();if(k==='dir'||k==='lh'||k==='size'||k==='font'){}}
+function settingsSheet(){
+  var h='<div class="sec">表示</div>'
+   +'<div class="row"><span>画面の明るさ</span>'+seg('theme',[['a','自動'],['l','ライト'],['d','ダーク']])+'</div>'
+   +'<div class="row"><span>書き方</span>'+seg('dir',[['h','横書き'],['v','縦書き']])+'</div>'
+   +'<div class="row"><span>フォント</span>'+seg('font',[['m','明朝'],['g','ゴシック']])+'</div>'
+   +'<div class="row"><span>文字の大きさ<small id="szv">'+D.s.size+'px</small></span><input type="range" min="14" max="28" step="1" value="'+D.s.size+'" data-k="size" aria-label="文字の大きさ"></div>'
+   +'<div class="row"><span>行間</span>'+seg('lh',[['2','ゆったり'],['1.8','標準'],['1.55','詰める']])+'</div>'
+   +sw('hidetop','入力中は上のメニューと章名を隠す','下の段の「✓」を押すと戻ります')
+   +sw('temph','入力中だけ横書きで表示','縦書きで書くとき、キーボードを開いている間だけ横書きになります')
+   +sw('vkeys','縦書きのとき左右キーで文字単位に動かす','左右キーが上下キーと同じ動き(文字ごとの移動)になります。縦書きのときだけ働きます')
+   +sw('vkeyrev','左右キーの向きを逆にする','初期設定は、右キーで次の文字(下へ)、左キーで前の文字(上へ)です')
+   +'<div class="sec">ルビと傍点の入力</div><p class="sub">文字を選んで下の「ルビ」「傍点」を押します。漢字を打ったあとに「ルビ」を押すと、直前の漢字にルビがつきます。かっこの中に読みを入れてください。</p>'
+   +'<div class="sec">文字数</div><div class="row"><span>数え方</span>'+sel('cm',[['ns','空白・改行を除く'],['nl','改行を除く'],['all','すべて含む']])+'</div><p class="sub">ルビの読みと記号は数えません。原稿用紙は400字詰め(20字×20行)で換算します。</p>'
+   +'<div class="sec">書き出しの整形</div>'
+   +sw('ind','段落の頭に全角スペースを入れる','「 『 などで始まる行は入れません')
+   +sw('blank','段落の間に空行を入れる')
+   +'<div class="row"><span>ルビ・傍点</span>'+sel('ruby',[['keep','そのまま(|漢字《かんじ》)'],['paren','括弧書きにする'],['strip','外す']])+'</div>'
+   +sw('titles','全章を1つにするとき章タイトルを入れる')
+   +'<div class="row"><span>章の区切り</span>'+sel('sep',[['blank','空行'],['star','* * *']])+'</div>'
+   +'<div class="sec">バックアップ</div>'
+   +sw('remind','バックアップのお知らせ','7日以上書き出していないときに知らせます')
+   +'<div class="acts"><button class="btn" id="bk-out">バックアップを書き出す(.json)</button><button class="btn" id="bk-in">バックアップを読み込む</button></div><input type="file" id="bk-f" accept=".json,application/json" hidden>'
+   +'<p class="sub">作品は、この端末の中に自動で保存されます。端末の初期化や、アプリ・ブラウザのデータの削除で失われるので、ときどきバックアップを書き出してください。</p>';
+  sheet('設定',h,function(r){
+    r.querySelectorAll('.seg').forEach(function(g){g.addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;var k=g.dataset.k,v=b.dataset.v;if(k==='lh')v=parseFloat(v);setSetting(k,v);g.querySelectorAll('button').forEach(function(x){x.setAttribute('aria-pressed',String(x===b))})})});
+    r.querySelectorAll('input.sw').forEach(function(i){i.addEventListener('change',function(){setSetting(i.dataset.k,i.checked)})});
+    r.querySelectorAll('select').forEach(function(s){s.addEventListener('change',function(){setSetting(s.dataset.k,s.value)})});
+    r.querySelector('input[type=range]').addEventListener('input',function(e){var v=+e.target.value;D.s.size=v;r.querySelector('#szv').textContent=v+'px';applyView();schedSave()});
+    r.querySelector('#bk-out').onclick=backupOut;r.querySelector('#bk-in').onclick=function(){r.querySelector('#bk-f').click()};
+    r.querySelector('#bk-f').addEventListener('change',function(e){backupIn(e.target.files[0]);e.target.value=''});})}
+
+function backupOut(){var data={app:'genkocho',v:1,at:now(),s:D.s,works:D.works.map(function(w){return {id:w.id,title:w.title,cur:w.cur,chs:w.chs.map(function(c){return {id:c.id,title:c.title,text:c.text}})}})};
+  saveFile('Algernonバックアップ_'+dateStr()+'.json',JSON.stringify(data)).then(function(ok){if(ok){D.lastBackup=now();persist()}})}
+function backupIn(f){if(!f)return;var rd=new FileReader();rd.onload=function(){try{var d=JSON.parse(rd.result);if(!d||d.app!=='genkocho'||!d.works)throw 0;var n=0;
+    d.works.forEach(function(w){var chs=(w.chs||[]).map(function(c){return {id:uid(),title:String(c.title||'No title'),text:String(c.text||''),hist:[],snapAt:0,at:now()}});if(!chs.length)chs=[newChapter()];D.works.push({id:uid(),title:String(w.title||'読み込んだ作品'),chs:chs,cur:chs[0].id,trash:[],at:now()});n++});
+    persist();scheduleCloud();renderDrawer();closeLayers();toast(n+'作品を読み込みました(作品の一覧に追加)')}catch(e){toast('このファイルは読み込めません')}};rd.readAsText(f)}
+
+function scheduleCloud(){}
+
+$('bUndo').addEventListener('click',undo);$('bRedo').addEventListener('click',redo);
+$('bFind').addEventListener('click',findSheet);$('bHist').addEventListener('click',histSheet);$('bOut').addEventListener('click',outSheet);$('bSet').addEventListener('click',settingsSheet);
+$('bDir').addEventListener('click',function(){D.s.dir=D.s.dir==='v'?'h':'v';applyView();resetScroll();persist()});
+[].forEach.call(document.querySelectorAll('#bar button,#top .ib'),function(b){b.addEventListener('pointerdown',function(e){if(document.activeElement===ed)e.preventDefault()})});
+
+ed.addEventListener('focus',function(){app.classList.add('editing')});
+ed.addEventListener('blur',function(){app.classList.remove('editing')});
+var KJ=/[\u4e00-\u9fff\u3005\u3006\u30f6]+$/,KJA=/^[\u4e00-\u9fff\u3005\u3006\u30f6]+$/;
+function exitEditing(){app.classList.remove('editing');try{ed.blur()}catch(e){}if(tempOn){tempOn=false;applyView()}}
+function ins(t){document.execCommand('insertText',false,t)}
+function back(n){var s=getSelection();for(var i=0;i<n;i++){try{s.modify('move','backward','character')}catch(e){}}}
+function pickBase(){var s=getSelection();if(!s.rangeCount||!ed.contains(s.anchorNode))return null;
+  if(!s.isCollapsed){var t=s.toString();return t&&t.indexOf('\n')<0?t:''}
+  var n=s.anchorNode;if(n.nodeType!==3)return '';var m=n.nodeValue.slice(0,s.anchorOffset).match(KJ);if(!m)return '';
+  var r=document.createRange();r.setStart(n,s.anchorOffset-m[0].length);r.setEnd(n,s.anchorOffset);s.removeAllRanges();s.addRange(r);return m[0]}
+function addRuby(){ed.focus({preventScroll:true});var b=pickBase();if(!b){toast('ルビをつける文字を1行の中で選ぶか、漢字のあとでタップしてください');return}
+  ins((KJA.test(b)?'':'|')+b+'《》');back(1)}
+function addEm(){ed.focus({preventScroll:true});var s=getSelection(),b=(s.rangeCount&&ed.contains(s.anchorNode)&&!s.isCollapsed)?s.toString():'';
+  if(b.indexOf('\n')>=0){toast('傍点をつける文字を1行の中で選んでください');return}
+  if(b)ins('《《'+b+'》》');else{ins('《《》》');back(2)}}
+$('bRuby').addEventListener('click',addRuby);$('bEm').addEventListener('click',addEm);
+$('bUndo2').addEventListener('click',undo);$('bRedo2').addEventListener('click',redo);
+$('bDone').addEventListener('click',exitEditing);
+$('reveal').addEventListener('click',exitEditing);
+$('bMenu2').addEventListener('click',function(){exitEditing();openDrawer()});
+
+ed.addEventListener('keydown',function(e){
+  if(!D.s.vkeys||!ed.classList.contains('v')||e.isComposing||e.keyCode===229)return;
+  if(e.key!=='ArrowLeft'&&e.key!=='ArrowRight')return;
+  if(e.ctrlKey||e.metaKey||e.altKey)return;
+  var s=getSelection();if(!s.rangeCount||!s.modify)return;
+  var fwd=(e.key==='ArrowRight')!==!!D.s.vkeyrev;
+  e.preventDefault();
+  s.modify(e.shiftKey?'extend':'move',fwd?'forward':'backward','character');
+  var rc=s.getRangeAt(0).getClientRects()[0];if(rc&&(rc.width||rc.height))reveal(s.getRangeAt(0))});
+
+var vv=window.visualViewport;
+var kbOpen=false;
+function fit(){if(!vv)return;var open=vv.height<window.innerHeight-120;if(open){kbOpen=true;var pt=parseFloat(getComputedStyle(document.documentElement).paddingTop)||0;app.style.height=Math.max(160,vv.height-pt)+'px';app.style.transform='translateY('+vv.offsetTop+'px)'}else{if(kbOpen){kbOpen=false;if(app.classList.contains('editing'))exitEditing()}app.style.height='';app.style.transform=''}}
+window.addEventListener('resize',fit);
+if(vv){vv.addEventListener('resize',fit);vv.addEventListener('scroll',fit)}
+
+try{ed.setAttribute('contenteditable','plaintext-only');if(ed.contentEditable!=='plaintext-only')ed.contentEditable='true'}catch(e){ed.contentEditable='true'}
+renderAll();
+try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}
+setTimeout(function(){if(!D.s.remind)return;var total=0;D.works.forEach(function(w){w.chs.forEach(function(c){total+=c.text.length})});if(total<500)return;
+  var days=D.lastBackup?Math.floor((now()-D.lastBackup)/86400000):null;if(D.lastBackup&&days<7)return;
+  toast(D.lastBackup?'バックアップを書き出して'+days+'日以上たちました':'まだバックアップを書き出していません',{label:'書き出す',fn:backupOut})},2500);
+})();
+</script>
+<script>
+if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){})})}
+</script>
+</body>
+</html>
