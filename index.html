@@ -18162,6 +18162,7 @@
       var seriesFilterList = document.getElementById('series-filter-list');
       var seriesButtons = {};
       var activeSeriesFilter = null;
+      var yearSortOverride = null; // 読者が「古い順/新しい順」を手動で切り替えたときだけ入る(シリーズ選択のたびに解除)
       var applySeriesFilter = function () {}; // replaced below
 
       if (allSeriesTags.length > 0) {
@@ -18185,6 +18186,7 @@
 
         applySeriesFilter = function (tag) {
           activeSeriesFilter = tag;
+          yearSortOverride = null; // シリーズは古い順(読み進める順)が基本
           if (tag) setSeriesFilterExpanded(true);
           renderArchive();
         };
@@ -18253,10 +18255,8 @@
       }
       if (yearDirToggleBtn) {
         yearDirToggleBtn.addEventListener('click', function () {
-          yearSortDir = yearSortDir === 'desc' ? 'asc' : 'desc';
-          yearDirToggleBtn.textContent = yearSortDir === 'desc' ? '古い順で表示' : '新しい順で表示';
-          yearDirToggleBtn.classList.toggle('is-active', yearSortDir === 'asc');
-          renderArchive();
+          yearSortOverride = yearSortDir === 'desc' ? 'asc' : 'desc';
+          renderArchive(); // 並びとボタンの表示は renderArchive 内で更新される
         });
       }
 
@@ -18269,6 +18269,13 @@
 
       var renderArchive = function () {
         var query = archiveSearchInput.value.trim();
+
+        // 並び順: 手動で切り替えていなければ、シリーズ絞り込み中は古い順、それ以外は新しい順
+        yearSortDir = yearSortOverride || (activeSeriesFilter ? 'asc' : 'desc');
+        if (yearDirToggleBtn) {
+          yearDirToggleBtn.textContent = yearSortDir === 'desc' ? '古い順で表示' : '新しい順で表示';
+          yearDirToggleBtn.classList.toggle('is-active', yearSortDir === 'asc');
+        }
 
         Object.keys(tagButtons).forEach(function (tag) {
           tagButtons[tag].classList.toggle('is-active', tag === activeTagFilter);
