@@ -37,7 +37,7 @@ button{cursor:pointer}
 #ttl{flex:1;min-width:0;height:48px;background:none;border:0;color:var(--mute);font-size:14px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 8px}
 #main{flex:1;min-height:0;position:relative;margin-bottom:54px}
 #ed{position:absolute;inset:0;outline:none;white-space:pre-wrap;line-break:strict;overflow-wrap:anywhere;font-family:var(--ed-font);font-size:var(--ed-size);line-height:var(--ed-lh);caret-color:var(--acc);padding:8px var(--ed-mx,0px) 14px;scroll-padding-bottom:14px;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;-webkit-user-select:text;user-select:text}
-#ed.v{writing-mode:vertical-rl;overflow-x:auto;overflow-y:hidden;padding:8px 8px 14px}
+#ed.v{writing-mode:vertical-rl;overflow-x:auto;overflow-y:hidden;padding:8px max(8px,var(--ed-mx,0px)) 14px;scroll-padding-left:max(8px,var(--ed-mx,0px));scroll-padding-right:max(8px,var(--ed-mx,0px))}
 #ed:empty::before{content:attr(data-ph);color:var(--mute);font-size:.8em}
 #ed::selection{background:var(--accbg)}
 #bar{position:absolute;left:max(16px,env(safe-area-inset-left,0px));right:max(16px,env(safe-area-inset-right,0px));bottom:0;height:54px;display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--bg);color:var(--mute);font-size:14px;transition:transform .18s ease,opacity .18s ease;z-index:5;margin:0 -8px;padding:0 8px 0 8px}
@@ -584,7 +584,7 @@ function settingsSheet(){
    +'<div class="row"><span>フォント</span>'+seg('font',[['m','明朝'],['g','ゴシック']])+'</div>'
    +'<div class="row"><span>文字の大きさ<small id="szv">'+D.s.size+'px</small></span><input type="range" min="14" max="28" step="1" value="'+D.s.size+'" data-k="size" aria-label="文字の大きさ"></div>'
    +'<div class="row"><span>行間</span>'+seg('lh',[['2','ゆったり'],['1.8','標準'],['1.55','詰める']])+'</div>'
-   +'<div class="row"><span>横書きの左右の余白<small id="mxv">'+mxLabel(D.s.mx||0)+'</small></span><input type="range" min="0" max="320" step="8" value="'+(D.s.mx||0)+'" data-k="mx" aria-label="横書きの左右の余白"></div><p class="sub">画面が広いときに文章が横に伸びすぎないよう、左右に余白をつくります。横書きのときだけ働きます。画面が狭いときは自動で小さくなります。</p>'
+   +'<div class="row"><span>左右の余白<small id="mxv">'+mxLabel(D.s.mx||0)+'</small></span><input type="range" min="0" max="320" step="8" value="'+(D.s.mx||0)+'" data-k="mx" aria-label="左右の余白"></div><p class="sub">画面の左右に余白をつくります。横書きでは、画面が広いときに文章が横に伸びすぎるのを防げます。縦書きでは、最初の行と最後の行が画面の端にくっつかなくなります。画面が狭いときは自動で小さくなります。</p>'
    +sw('hidetop','入力中は上のメニューと章名を隠す','下の段の「✓」を押すと戻ります')
    +sw('temph','入力中だけ横書きで表示','縦書きで書くとき、キーボードを開いている間だけ横書きになります')
    +sw('vkeys','縦書きのとき左右キーで文字単位に動かす','左右キーが上下キーと同じ動き(文字ごとの移動)になります。縦書きのときだけ働きます')
@@ -635,6 +635,12 @@ $('bDone').addEventListener('click',exitEditing);
 $('reveal').addEventListener('click',exitEditing);
 $('bMenu2').addEventListener('click',function(){menuBtn(true)});
 
+/* 縦書き中は、マウスホイールの上下で左右にスクロールする(下へ回すと左へ進む)。トラックパッドの横スクロールや、Ctrl+ホイール(拡大)はそのまま */
+function vWheel(el){el.addEventListener('wheel',function(e){
+  if(!el.classList.contains('v')||e.ctrlKey||e.metaKey||e.shiftKey||e.deltaY===0||Math.abs(e.deltaX)>=Math.abs(e.deltaY))return;
+  var d=e.deltaMode===1?e.deltaY*40:(e.deltaMode===2?e.deltaY*el.clientWidth:e.deltaY);
+  el.scrollLeft-=d;e.preventDefault()},{passive:false})}
+vWheel(ed);vWheel($('pv'));
 ed.addEventListener('keydown',function(e){
   if(!D.s.vkeys||!ed.classList.contains('v')||e.isComposing||e.keyCode===229)return;
   if(e.key!=='ArrowLeft'&&e.key!=='ArrowRight')return;
