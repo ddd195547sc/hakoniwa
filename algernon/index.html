@@ -36,7 +36,7 @@ button{cursor:pointer}
 #top{flex:none;height:48px;display:flex;align-items:center;justify-content:space-between;margin:0 -8px}
 #ttl{flex:1;min-width:0;height:48px;background:none;border:0;color:var(--mute);font-size:14px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 8px}
 #main{flex:1;min-height:0;position:relative;margin-bottom:54px}
-#ed{position:absolute;inset:0;outline:none;white-space:pre-wrap;line-break:strict;overflow-wrap:anywhere;font-family:var(--ed-font);font-size:var(--ed-size);line-height:var(--ed-lh);caret-color:var(--acc);padding:8px 0 14px;scroll-padding-bottom:14px;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;-webkit-user-select:text;user-select:text}
+#ed{position:absolute;inset:0;outline:none;white-space:pre-wrap;line-break:strict;overflow-wrap:anywhere;font-family:var(--ed-font);font-size:var(--ed-size);line-height:var(--ed-lh);caret-color:var(--acc);padding:8px var(--ed-mx,0px) 14px;scroll-padding-bottom:14px;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;-webkit-user-select:text;user-select:text}
 #ed.v{writing-mode:vertical-rl;overflow-x:auto;overflow-y:hidden;padding:8px 8px 14px}
 #ed:empty::before{content:attr(data-ph);color:var(--mute);font-size:.8em}
 #ed::selection{background:var(--accbg)}
@@ -60,9 +60,17 @@ button{cursor:pointer}
 #scrim.on{opacity:1;pointer-events:auto}
 #drawer{position:absolute;top:0;bottom:0;left:0;width:min(84%,320px);background:var(--sheet);z-index:30;display:flex;flex-direction:column;transform:translateX(-102%);visibility:hidden;transition:transform .22s ease,visibility 0s .22s;padding-left:max(16px,env(safe-area-inset-left,0px));padding-top:8px}
 #drawer.on{transform:none;visibility:visible;transition:transform .22s ease}
-#dw-head{display:block;width:100%;text-align:left;background:none;border:0;padding:10px 16px 10px 0;border-bottom:.5px solid var(--line)}
-#dw-head small{display:block;color:var(--mute);font-size:13px}
-#dw-title{font-size:17px;font-weight:500}
+@media (hover:hover) and (pointer:fine) and (min-width:760px){#drawer{width:300px}#app.dock-open{padding-left:324px}#app.dock-open #bar{left:324px}#app.dock-open #drawer{z-index:10;border-right:.5px solid var(--line)}}
+#dw-file{padding:10px 16px 12px 0;border-bottom:.5px solid var(--line)}
+#dw-name{display:flex;align-items:center;min-width:0}
+#dw-title{font-size:17px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#dw-file small{display:block;color:var(--mute);font-size:13px;margin-top:2px}
+#dw-file .facts{display:flex;gap:6px;margin-top:10px}
+#dw-file .facts .btn{flex:1;min-width:0;padding-left:6px;padding-right:6px}
+.btn.sm{padding:7px 12px;min-height:36px;font-size:14px;border-radius:8px}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--acc);margin-left:8px;flex:none}
+.dot[hidden]{display:none}
+#bSave{position:relative}#bSave .dot{position:absolute;top:9px;right:9px;margin:0;display:none}#bSave.dirty .dot{display:block}
 #dw-list{flex:1;overflow-y:auto;padding:6px 0}
 .ch{display:flex;align-items:center;border-radius:8px;margin-right:8px}
 .ch.sel{background:var(--accbg);color:var(--acc)}
@@ -139,12 +147,14 @@ input.sw:checked::after{transform:translateX(16px)}
 <symbol id="i-grip" viewBox="0 0 24 24"><path d="M9 6h.01M15 6h.01M9 12h.01M15 12h.01M9 18h.01M15 18h.01" stroke-width="2.6"/></symbol>
 <symbol id="i-more" viewBox="0 0 24 24"><path d="M5 12h.01M12 12h.01M19 12h.01" stroke-width="2.6"/></symbol>
 <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7"/></symbol>
+<symbol id="i-save" viewBox="0 0 24 24"><path d="M5 4h11l3 3v13H5z"/><path d="M8 4v5h7V4"/><path d="M8 20v-6h8v6"/></symbol>
 </defs></svg>
 
 <div id="app">
   <div id="top">
     <button class="ib" id="bMenu" aria-label="章の一覧を開く"><svg class="i"><use href="#i-menu"/></svg></button>
     <button id="ttl" aria-label="章の名前を変える"></button>
+    <button class="ib" id="bSave" aria-label="保存"><svg class="i"><use href="#i-save"/></svg><i class="dot"></i></button>
     <button class="ib" id="bHist" aria-label="履歴"><svg class="i"><use href="#i-clock"/></svg></button>
     <button class="ib" id="bSet" aria-label="設定を開く"><svg class="i"><use href="#i-sliders"/></svg></button>
   </div>
@@ -156,7 +166,7 @@ input.sw:checked::after{transform:translateX(16px)}
       <button class="ib" id="bUndo" aria-label="元に戻す"><svg class="i"><use href="#i-undo"/></svg></button>
       <button class="ib" id="bRedo" aria-label="やり直す"><svg class="i"><use href="#i-redo"/></svg></button>
       <button class="ib" id="bFind" aria-label="検索と置換"><svg class="i"><use href="#i-search"/></svg></button>
-      <button class="ib" id="bOut" aria-label="書き出しとバックアップ"><svg class="i"><use href="#i-export"/></svg></button>
+      <button class="ib" id="bOut" aria-label="ファイルと書き出し"><svg class="i"><use href="#i-export"/></svg></button>
       <button class="ib" id="bDir" aria-label="縦書きに切り替え"><svg class="i"><use href="#i-tate"/></svg></button>
     </span>
     <span class="ic" id="fmt">
@@ -170,15 +180,16 @@ input.sw:checked::after{transform:translateX(16px)}
   </div>
   <div id="scrim"></div>
   <aside id="drawer" aria-label="章の一覧">
-    <button id="dw-head"><span id="dw-title"></span><small id="dw-sub"></small></button>
+    <div id="dw-file"><div id="dw-name"><span id="dw-title"></span><i class="dot" id="dw-dot" hidden></i></div><small id="dw-sub"></small><div class="facts"><button class="btn sm" id="dw-open">開く</button><button class="btn sm pri" id="dw-save">保存</button><button class="btn sm" id="dw-more">その他</button></div></div>
     <div id="dw-list"></div>
-    <div id="dw-foot"><button class="btn add" id="dw-add"><svg class="i"><use href="#i-plus"/></svg>章を追加</button><span id="dw-total"></span><span class="hint">章を長押しすると名前を変えられます</span></div>
+    <div id="dw-foot"><button class="btn add" id="dw-add"><svg class="i"><use href="#i-plus"/></svg>章を追加</button><span id="dw-total"></span><span class="hint" id="dw-hint">章を長押しすると名前を変えられます</span></div>
   </aside>
   <section id="sheet" role="dialog" aria-modal="true" aria-labelledby="sh-t">
     <div id="sh-h"><span id="sh-t"></span><button class="ib" id="sh-x" aria-label="閉じる"><svg class="i"><use href="#i-x"/></svg></button></div>
     <div id="sh-b"></div>
   </section>
   <section id="prev" hidden aria-label="プレビュー"><div id="pv-top"><button class="ib" id="pv-x" aria-label="プレビューを閉じる"><svg class="i"><use href="#i-x"/></svg></button></div><div id="pv"></div></section>
+  <input type="file" id="open-f" accept=".txt,text/plain" hidden>
   <div id="toast" role="status"><span id="tmsg"></span><button id="tact" hidden></button></div>
 </div>
 
@@ -209,6 +220,16 @@ var DX_CT='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="
 var DX_RELS='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>';
 var DX_DRELS='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>';
 var DX_STY='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:docDefaults><w:rPrDefault><w:rPr><w:rFonts w:ascii="Yu Mincho" w:hAnsi="Yu Mincho" w:eastAsia="Yu Mincho" w:cs="Yu Mincho"/><w:sz w:val="21"/><w:szCs w:val="21"/><w:lang w:val="en-US" w:eastAsia="ja-JP"/></w:rPr></w:rPrDefault><w:pPrDefault><w:pPr><w:spacing w:after="0" w:line="360" w:lineRule="auto"/></w:pPr></w:pPrDefault></w:docDefaults><w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/><w:qFormat/></w:style><w:style w:type="paragraph" w:styleId="Title"><w:name w:val="Title"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:qFormat/><w:pPr><w:jc w:val="center"/><w:spacing w:before="240" w:after="480"/></w:pPr><w:rPr><w:sz w:val="40"/><w:szCs w:val="40"/></w:rPr></w:style><w:style w:type="paragraph" w:styleId="Heading1"><w:name w:val="heading 1"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:qFormat/><w:pPr><w:keepNext/><w:spacing w:before="360" w:after="240"/><w:outlineLvl w:val="0"/></w:pPr><w:rPr><w:b/><w:bCs/><w:sz w:val="30"/><w:szCs w:val="30"/></w:rPr></w:style></w:styles>';
+function esLine(l){return /^\\*## /.test(l)?'\\'+l:l}
+function unLine(l){return /^\\+## /.test(l)?l.slice(1):l}
+function workToTxt(w){var chs=w.chs,single=chs.length===1&&chs[0].title==='No title';
+  return chs.map(function(c){var body=String(c.text||'').replace(/\r\n?/g,'\n').replace(/\n+$/,'').split('\n').map(esLine).join('\n');
+    return (single?'':'## '+String(c.title||'No title').replace(/[\r\n]+/g,' ')+'\n')+body}).join('\n\n')+'\n'}
+function txtToChapters(t){var lines=String(t||'').replace(/^\uFEFF/,'').replace(/\r\n?/g,'\n').split('\n'),chs=[],cur=null;
+  function push(){if(cur){cur.text=cur.lines.map(unLine).join('\n').replace(/\n+$/,'');delete cur.lines;chs.push(cur)}}
+  lines.forEach(function(l){var m=/^## (.*)$/.exec(l);if(m){push();cur={title:(m[1].trim()||'No title'),lines:[]}}else{if(!cur)cur={title:'No title',lines:[],pre:true};cur.lines.push(l)}});
+  push();if(chs.length>1&&chs[0].pre&&!chs[0].text.trim())chs.shift();
+  chs.forEach(function(c){delete c.pre});if(!chs.length)chs=[{title:'No title',text:''}];return chs}
 </script>
 
 <script>
@@ -220,13 +241,15 @@ function uid(){return 'x'+Date.now().toString(36)+Math.random().toString(36).sli
 function now(){return Date.now()}
 function newChapter(t){return {id:uid(),title:t||'No title',text:'',hist:[],snapAt:0,at:now()}}
 function newWork(t){var c=newChapter();return {id:uid(),title:t||'無題の作品',chs:[c],cur:c.id,trash:[],at:now()}}
-function defaults(){var w=newWork('無題の作品');return {v:1,works:[w],cur:w.id,s:{theme:'a',hidetop:true,vkeys:true,vkeyrev:false,dir:'h',font:'m',size:17,lh:2,temph:false,cm:'ns',ind:true,blank:false,ruby:'keep',titles:true,sep:'blank',cloud:false,remind:true},lastBackup:0,cloudHash:{},m2:1,at:0}}
+function defaults(){var w=newWork('無題の作品');return {v:1,works:[w],cur:w.id,s:{theme:'a',hidetop:true,vkeys:true,vkeyrev:false,dir:'h',font:'m',size:17,lh:2,temph:false,cm:'ns',ind:true,blank:false,ruby:'keep',titles:true,sep:'blank',cloud:false,remind:true},lastBackup:0,cloudHash:{},m2:1,v2:1,legacy:[],at:0}}
 function load(){var raw=null,d=null;try{raw=localStorage.getItem(LS)}catch(e){}
   if(raw){try{d=JSON.parse(raw)}catch(e){try{localStorage.setItem(LS+'.bad',raw)}catch(e2){}}}
   var base=defaults();if(!d||!d.works||!d.works.length)return base;
   d.s=Object.assign({},base.s,d.s||{});
   d.works.forEach(function(w){if(!w.chs||!w.chs.length)w.chs=[newChapter()];w.chs.forEach(function(c){c.hist=c.hist||[];c.text=c.text||'';c.title=c.title||'No title';if(!d.m2&&/^第[0-9〇一二三四五六七八九十百]+章$/.test(c.title))c.title='No title';c.id=c.id||uid()});if(!w.chs.some(function(c){return c.id===w.cur}))w.cur=w.chs[0].id;w.trash=w.trash||[];w.title=w.title||'無題の作品'});
   if(!d.works.some(function(w){return w.id===d.cur}))d.cur=d.works[0].id;
+  if(!d.v2){var cu=d.works.filter(function(w){return w.id===d.cur})[0]||d.works[0];d.legacy=d.works.filter(function(w){return w!==cu}).map(function(w){return {id:w.id,title:w.title,chs:w.chs.map(function(c){return {title:c.title,text:c.text}})}});d.works=[cu];d.cur=cu.id;d.v2=1}
+  d.legacy=d.legacy||[];
   d.m2=1;d.cloudHash=d.cloudHash||{};d.lastBackup=d.lastBackup||0;return d}
 var hostTheme=document.documentElement.getAttribute('data-theme');
 var D=load();
@@ -238,7 +261,7 @@ var storageOk=true;
 
 var saveT=0,dirty=false;
 function pruneHist(n){D.works.forEach(function(w){w.chs.forEach(function(c){if(c.hist.length>n)c.hist.length=n})})}
-function persist(){clearTimeout(saveT);try{localStorage.setItem(LS,JSON.stringify(D));dirty=false;return true}catch(e){pruneHist(3);try{localStorage.setItem(LS,JSON.stringify(D));dirty=false;toast('保存容量が少なくなったため、古い履歴を整理しました');return true}catch(e2){if(storageOk){storageOk=false;toast('この端末のブラウザに保存できません。バックアップを書き出してください')}return false}}}
+function persist(){clearTimeout(saveT);try{localStorage.setItem(LS,JSON.stringify(D));dirty=false;return true}catch(e){pruneHist(3);try{localStorage.setItem(LS,JSON.stringify(D));dirty=false;toast('保存容量が少なくなったため、古い履歴を整理しました');return true}catch(e2){if(storageOk){storageOk=false;toast('この端末のブラウザに保存できません。txtで保存してください')}return false}}}
 function schedSave(){dirty=true;clearTimeout(saveT);saveT=setTimeout(persist,700)}
 document.addEventListener('visibilitychange',function(){if(document.hidden&&dirty)persist()});
 window.addEventListener('pagehide',function(){if(dirty)persist()});
@@ -269,7 +292,7 @@ function maybeSnap(){var c=C();if(now()-c.snapAt>5*60*1000){var last=c.hist[0];i
 
 var cT=0;
 function updateCount(){var c=C(),n=countChars(c.text,D.s.cm),g=genkou(c.text);$('c1').textContent=fmtN(n)+'字';$('c2').textContent=' ・ '+g.sheets.toFixed(1)+'枚'}
-function afterEdit(prog){clearTimeout(cT);cT=setTimeout(updateCount,120);schedSave();scheduleCloud();clearTimeout(uT);uT=setTimeout(pushUndo,500);if(!prog)app.classList.add('typing');maybeSnap()}
+function afterEdit(prog){clearTimeout(cT);cT=setTimeout(updateCount,120);schedSaveUI();schedSave();scheduleCloud();clearTimeout(uT);uT=setTimeout(pushUndo,500);if(!prog)app.classList.add('typing');maybeSnap()}
 ed.addEventListener('input',function(){var c=C();c.text=getText(ed);c.at=now();W().at=now();afterEdit(false)});
 ed.addEventListener('beforeinput',function(e){if(e.inputType==='historyUndo'){e.preventDefault();undo()}else if(e.inputType==='historyRedo'){e.preventDefault();redo()}});
 ed.addEventListener('paste',function(e){e.preventDefault();var t=(e.clipboardData||window.clipboardData).getData('text/plain').replace(/\r\n?/g,'\n');document.execCommand('insertText',false,t)});
@@ -279,7 +302,7 @@ ed.addEventListener('blur',function(){app.classList.remove('typing')});
 var tempOn=false;
 function applyView(){var s=D.s;var r=document.documentElement.style;
   r.setProperty('--ed-font',s.font==='g'?"-apple-system,'Hiragino Sans','Hiragino Kaku Gothic ProN','Yu Gothic','YuGothic','Meiryo','Noto Sans JP','Noto Sans CJK JP','Source Han Sans JP',sans-serif":"'Hiragino Mincho ProN','Hiragino Mincho Pro','Yu Mincho','YuMincho','BIZ UDPMincho','BIZ UDMincho','Noto Serif JP','Noto Serif CJK JP','Source Han Serif JP','MS PMincho',serif");
-  r.setProperty('--ed-size',s.size+'px');r.setProperty('--ed-lh',String(s.lh));
+  r.setProperty('--ed-size',s.size+'px');r.setProperty('--ed-mx','min('+(s.mx||0)+'px,22vw)');r.setProperty('--ed-lh',String(s.lh));
   app.classList.toggle('hidetop',!!s.hidetop);
   var rt=document.documentElement;if(s.theme==='l')rt.setAttribute('data-theme','light');else if(s.theme==='d')rt.setAttribute('data-theme','dark');else if(hostTheme)rt.setAttribute('data-theme',hostTheme);else rt.removeAttribute('data-theme');
   var v=s.dir==='v'&&!(s.temph&&tempOn);ed.classList.toggle('v',v);
@@ -289,39 +312,46 @@ ed.addEventListener('blur',function(){if(tempOn){tempOn=false;applyView()}});
 function resetScroll(){ed.scrollTop=0;ed.scrollLeft=0}
 
 function renderTitle(){$('ttl').textContent=C().title}
-function renderDrawer(){var w=W();$('dw-title').textContent=w.title;$('dw-sub').textContent=w.chs.length+'章 ・ 作品を切り替える';
+function renderDrawer(){var w=W();$('dw-title').textContent=w.title;
   var h='',tot=0,lines=0;w.chs.forEach(function(c){var n=countChars(c.text,D.s.cm);tot+=n;lines+=genkou(c.text).lines;var sel=c.id===w.cur;
     h+='<div class="ch'+(sel?' sel':'')+'" data-id="'+c.id+'"><button class="chm" data-act="open"><span class="cn">'+esc(c.title)+'</span><span class="cc">'+fmtN(n)+'</span></button><button class="ib sm" data-act="menu" aria-label="章の設定"><svg class="i"><use href="#i-more"/></svg></button><span class="h" aria-label="ドラッグして並べ替え"><svg class="i"><use href="#i-grip"/></svg></span></div>'});
-  $('dw-list').innerHTML=h;$('dw-total').textContent='全体 '+fmtN(tot)+'字 ・ '+(lines/20).toFixed(1)+'枚'}
+  $('dw-list').innerHTML=h;$('dw-total').textContent='全体 '+fmtN(tot)+'字 ・ '+(lines/20).toFixed(1)+'枚';updateSaveUI()}
 function renderAll(){applyView();renderTitle();setEditor(C().text);resetScroll();updateCount();renderDrawer()}
 
-function openChapter(id){var w=W();if(!w.chs.some(function(c){return c.id===id}))return;w.cur=id;renderAll();schedSave();closeLayers()}
-function closeLayers(){drawer.classList.remove('on');sheetEl.classList.remove('on');$('scrim').classList.remove('on');$('prev').hidden=true}
-function openDrawer(){renderDrawer();sheetEl.classList.remove('on');drawer.classList.add('on');$('scrim').classList.add('on')}
-function sheet(title,html,bind){drawer.classList.remove('on');$('sh-t').textContent=title;var b=$('sh-b');b.innerHTML=html;sheetEl.classList.add('on');$('scrim').classList.add('on');b.scrollTop=0;if(bind)bind(b);$('sh-x').focus({preventScroll:true})}
+function openChapter(id){var w=W();if(!w.chs.some(function(c){return c.id===id}))return;w.cur=id;renderAll();schedSave();closeLayers();if(docked())setTimeout(function(){ed.focus({preventScroll:true})},0)}
+function isDock(){try{return !!(window.matchMedia&&matchMedia('(hover:hover) and (pointer:fine) and (min-width:760px)').matches)}catch(e){return false}}
+function docked(){return app.classList.contains('dock-open')}
+var askRes=null;
+function closeLayers(){if(askRes){var af=askRes;askRes=null;af(-1)}if(!docked())drawer.classList.remove('on');sheetEl.classList.remove('on');$('scrim').classList.remove('on');$('prev').hidden=true}
+function closeDock(){app.classList.remove('dock-open');drawer.classList.remove('on');D.s.dock=false;persist()}
+function openDrawer(){renderDrawer();sheetEl.classList.remove('on');drawer.classList.add('on');if(isDock()){app.classList.add('dock-open');$('scrim').classList.remove('on');D.s.dock=true;persist()}else $('scrim').classList.add('on')}
+function menuBtn(fromEditing){if(isDock()){if(docked())closeDock();else openDrawer();if(fromEditing)ed.focus({preventScroll:true})}else{if(fromEditing)exitEditing();openDrawer()}}
+function sheet(title,html,bind){if(!docked())drawer.classList.remove('on');$('sh-t').textContent=title;var b=$('sh-b');b.innerHTML=html;sheetEl.classList.add('on');$('scrim').classList.add('on');b.scrollTop=0;if(bind)bind(b);$('sh-x').focus({preventScroll:true})}
 $('scrim').addEventListener('click',closeLayers);$('sh-x').addEventListener('click',closeLayers);$('pv-x').addEventListener('click',closeLayers);
 document.addEventListener('keydown',function(e){if(e.key==='Escape')closeLayers()});
-$('bMenu').addEventListener('click',openDrawer);
+$('bMenu').addEventListener('click',function(){menuBtn(false)});
 
-var lpFired=false,lpT=0,lpX=0,lpY=0;
-$('dw-list').addEventListener('pointerdown',function(e){lpFired=false;var b=e.target.closest('.chm');if(!b)return;var row=b.closest('.ch');lpX=e.clientX;lpY=e.clientY;clearTimeout(lpT);lpT=setTimeout(function(){lpFired=true;try{if(navigator.vibrate)navigator.vibrate(12)}catch(x){}chapterSheet(row.dataset.id,true)},500)});
+try{if(window.matchMedia&&matchMedia('(hover:hover) and (pointer:fine)').matches)$('dw-hint').textContent='章をダブルクリックすると名前を変えられます'}catch(e){}
+try{matchMedia('(hover:hover) and (pointer:fine) and (min-width:760px)').addEventListener('change',function(){if(!isDock()&&docked()){app.classList.remove('dock-open');drawer.classList.remove('on')}})}catch(e){}
+var lpFired=false,lpT=0,lpX=0,lpY=0,clkT=0;
+var lastPT='';
+$('dw-list').addEventListener('pointerdown',function(e){lpFired=false;lastPT=e.pointerType||'';var b=e.target.closest('.chm');if(!b||e.pointerType==='mouse')return;var row=b.closest('.ch');lpX=e.clientX;lpY=e.clientY;clearTimeout(lpT);lpT=setTimeout(function(){lpFired=true;try{if(navigator.vibrate)navigator.vibrate(12)}catch(x){}chapterSheet(row.dataset.id,true,true)},500)});
 $('dw-list').addEventListener('pointermove',function(e){if(lpT&&(Math.abs(e.clientX-lpX)>8||Math.abs(e.clientY-lpY)>8)){clearTimeout(lpT);lpT=0}});
 $('dw-list').addEventListener('pointerup',function(){clearTimeout(lpT);lpT=0});
 $('dw-list').addEventListener('pointercancel',function(){clearTimeout(lpT);lpT=0});
 $('dw-list').addEventListener('contextmenu',function(e){e.preventDefault()});
-$('dw-list').addEventListener('click',function(e){if(lpFired){lpFired=false;return}var b=e.target.closest('button');if(!b)return;var row=b.closest('.ch');if(!row)return;if(b.dataset.act==='open')openChapter(row.dataset.id);else if(b.dataset.act==='menu')chapterSheet(row.dataset.id)});
+$('dw-list').addEventListener('click',function(e){if(lpFired){lpFired=false;return}var b=e.target.closest('button');if(!b)return;var row=b.closest('.ch');if(!row)return;if(b.dataset.act==='open'){var id=row.dataset.id;clearTimeout(clkT);if(e.detail===2&&lastPT==='mouse'){chapterSheet(id,true,true);return}if(lastPT==='mouse'&&!docked())clkT=setTimeout(function(){openChapter(id)},230);else openChapter(id)}else if(b.dataset.act==='menu')chapterSheet(row.dataset.id,false,true)});
 var drag=null;
 $('dw-list').addEventListener('pointerdown',function(e){var h=e.target.closest('.h');if(!h)return;drag=h.parentNode;drag.classList.add('drag');h.setPointerCapture(e.pointerId);e.preventDefault()});
 $('dw-list').addEventListener('pointermove',function(e){if(!drag)return;var el=document.elementFromPoint(e.clientX,e.clientY),row=el&&el.closest?el.closest('.ch'):null,ul=$('dw-list');if(row&&row!==drag&&row.parentNode===ul){var r=row.getBoundingClientRect();if(e.clientY<r.top+r.height/2)ul.insertBefore(drag,row);else ul.insertBefore(drag,row.nextSibling)}});
 function endDrag(){if(!drag)return;drag.classList.remove('drag');drag=null;var w=W(),ids=[].map.call($('dw-list').children,function(n){return n.dataset.id}),map={};w.chs.forEach(function(c){map[c.id]=c});w.chs=ids.map(function(i){return map[i]}).filter(Boolean);w.at=now();persist();scheduleCloud();renderDrawer()}
 $('dw-list').addEventListener('pointerup',endDrag);$('dw-list').addEventListener('pointercancel',endDrag);
-$('dw-add').addEventListener('click',function(){var w=W(),c=newChapter();w.chs.push(c);w.cur=c.id;w.at=now();persist();renderAll();closeLayers();setTimeout(function(){ed.focus()},60)});
-$('dw-head').addEventListener('click',worksSheet);
+$('dw-add').addEventListener('click',function(){var w=W(),c=newChapter();w.chs.push(c);w.cur=c.id;w.at=now();persist();renderAll();var l=$('dw-list');l.scrollTop=l.scrollHeight;if(docked())ed.focus({preventScroll:true})});
 $('ttl').addEventListener('click',function(){chapterSheet(C().id)});
 
-function chapterSheet(id,sel){var w=W(),c=w.chs.filter(function(x){return x.id===id})[0];if(!c)return;
+function chapterSheet(id,sel,back){var w=W(),c=w.chs.filter(function(x){return x.id===id})[0];if(!c)return;
   sheet('章の設定','<label class="fl">章の名前<input id="rn" type="text" maxlength="60" value="'+esc(c.title)+'"></label><div class="acts"><button class="btn pri" id="rn-ok">名前を保存</button><button class="btn dng" id="rn-del">この章を削除</button></div><p class="sub">削除した章は、直後の「元に戻す」で復元できます。</p>',function(r){
-    function ok(){c.title=r.querySelector('#rn').value.trim()||c.title;persist();renderTitle();renderDrawer();scheduleCloud();closeLayers()}
+    function ok(){c.title=r.querySelector('#rn').value.trim()||c.title;persist();renderTitle();renderDrawer();scheduleCloud();closeLayers();if(back)openDrawer()}
     r.querySelector('#rn-ok').onclick=ok;r.querySelector('#rn').addEventListener('keydown',function(e){if(e.key==='Enter')ok()});
     if(sel)setTimeout(function(){var i=r.querySelector('#rn');i.focus();i.select()},280);
     r.querySelector('#rn-del').onclick=function(){delChapter(id)}})}
@@ -329,17 +359,6 @@ function delChapter(id){var w=W();if(w.chs.length<2){closeLayers();toast('章が
   var i=w.chs.map(function(c){return c.id}).indexOf(id),c=w.chs.splice(i,1)[0];w.trash.unshift({c:c,i:i});if(w.trash.length>10)w.trash.length=10;
   if(w.cur===id)w.cur=w.chs[Math.min(i,w.chs.length-1)].id;w.at=now();persist();scheduleCloud();closeLayers();renderAll();
   toast('「'+c.title+'」を削除しました',{label:'元に戻す',fn:function(){var k=w.trash.map(function(t){return t.c.id}).indexOf(c.id);if(k<0)return;var t=w.trash.splice(k,1)[0];w.chs.splice(Math.min(t.i,w.chs.length),0,t.c);w.cur=t.c.id;persist();scheduleCloud();renderAll()}})}
-
-function worksSheet(){var h='<label class="fl">いまの作品の名前<input id="wn" type="text" maxlength="60" value="'+esc(W().title)+'"></label><div class="acts"><button class="btn" id="wn-ok">名前を保存</button></div><div class="sec">作品の一覧</div>';
-  D.works.forEach(function(w){var n=0;w.chs.forEach(function(c){n+=countChars(c.text,D.s.cm)});h+='<button class="hit" data-w="'+w.id+'">'+(w.id===D.cur?'● ':'')+esc(w.title)+'<small>'+w.chs.length+'章 ・ '+fmtN(n)+'字</small></button>'});
-  h+='<div class="acts"><button class="btn add" id="w-new"><svg class="i"><use href="#i-plus"/></svg>新しい作品</button><button class="btn dng" id="w-del">この作品を削除</button></div>';
-  sheet('作品',h,function(r){
-    r.querySelector('#wn-ok').onclick=function(){W().title=r.querySelector('#wn').value.trim()||W().title;persist();scheduleCloud();renderDrawer();closeLayers()};
-    r.querySelectorAll('.hit').forEach(function(b){b.onclick=function(){D.cur=b.dataset.w;persist();renderAll();closeLayers()}});
-    r.querySelector('#w-new').onclick=function(){var w=newWork('新しい作品');D.works.push(w);D.cur=w.id;persist();scheduleCloud();renderAll();closeLayers()};
-    r.querySelector('#w-del').onclick=function(){if(D.works.length<2){toast('作品が1つだけのときは削除できません');return}
-      var w=W();sheet('作品を削除','<p>「'+esc(w.title)+'」と、その章をすべて削除します。この操作は元に戻せません。先にバックアップを書き出すことをおすすめします。</p><div class="acts"><button class="btn dng" id="cf-ok">削除する</button><button class="btn" id="cf-no">やめる</button></div>',function(q){
-        q.querySelector('#cf-no').onclick=closeLayers;q.querySelector('#cf-ok').onclick=function(){D.works=D.works.filter(function(x){return x.id!==w.id});D.cur=D.works[0].id;persist();scheduleCloud();renderAll();closeLayers();toast('作品を削除しました')}})}})}
 
 function histSheet(){var c=C();var h='<div class="acts"><button class="btn pri" id="hs">いまの状態を保存</button></div>';
   if(!c.hist.length)h+='<p class="sub">まだ履歴がありません。書いていると5分ごとに自動で残ります。</p>';
@@ -375,23 +394,11 @@ async function saveFile(name,data){
   try{var u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(function(){URL.revokeObjectURL(u)},30000);toast('保存しました');return true}
   catch(e){toast('保存できませんでした');return false}}
 function dateStr(){var d=new Date();return d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())}
-function bkHtml(){return '<div class="sec">バックアップ</div>'
-  +(FS?'<div class="row"><span>保存先フォルダ<small id="bk-dn">未設定</small></span><button class="btn" id="bk-dir">選ぶ</button></div><div class="acts"><button class="btn pri" id="bk-fo">フォルダに書き出す</button><button class="btn" id="bk-fi">フォルダから読み込む</button></div><p class="sub">作品ごとに「作品名.json」を1つ作り、書き出すたびに同じ名前のファイルへ上書きします(日付付きのファイルは増えません)。Dropboxなどのフォルダにしておくとほかのパソコンでも読み込めます。名前を変えた作品や削除した作品の古いファイルは、フォルダに残ります。同じ作品を読み込んだときは、章ごとに本文を置き換え、元の本文は履歴に残ります。</p>':'')
-  +'<div class="acts"><button class="btn" id="bk-out">'+(FS?'全作品を1つのファイルで書き出す(.json)':'バックアップを書き出す(.json)')+'</button><button class="btn" id="bk-in">バックアップを読み込む</button></div><input type="file" id="bk-f" accept=".json,application/json" multiple hidden>';}
-function bkBind(r){r.querySelector('#bk-out').onclick=dlBackup;r.querySelector('#bk-in').onclick=function(){r.querySelector('#bk-f').click()};
-  r.querySelector('#bk-f').addEventListener('change',function(e){backupIn(e.target.files);e.target.value=''});
-  if(FS){var dn=r.querySelector('#bk-dn'),db=r.querySelector('#bk-dir');hGet('__dir').then(function(d){if(d){dn.textContent='「'+d.name+'」';db.textContent='変える'}});
-    db.onclick=function(){showDirectoryPicker({mode:'readwrite'}).then(function(d){return hPut('__dir',d).then(function(){dn.textContent='「'+d.name+'」';db.textContent='変える';toast('保存先を「'+d.name+'」にしました')})},function(){})};
-    r.querySelector('#bk-fo').onclick=function(){folderOut(false).then(function(ok){if(ok)closeLayers()})};r.querySelector('#bk-fi').onclick=folderIn}}
 function outSheet(){var o=eo(),w=W(),c=C();
   var sum='段落頭の全角スペース:'+(o.indent?'あり':'なし')+' ／ 段落間の空行:'+(o.blank?'あり':'なし')+' ／ ルビ・傍点:'+({keep:'そのまま',paren:'括弧書き',strip:'外す'}[o.ruby]);
-  var fl='';if(FS){var lk=c.link;fl='<div class="sec">パソコンのtxtファイルと連携</div><div class="acts"><button class="btn" id="f1">txtを開く</button><button class="btn pri" id="f2">上書き保存</button><button class="btn" id="f3">名前を付けて保存</button></div>'
-    +(lk?'<p class="sub">この章の連携先:「'+esc(lk.name)+'」 ／ 最後に保存:'+hhmm(lk.at)+' ／ '+(fileDirty(c)?'保存していない変更があります':'変更はすべて保存済み')+'</p><div class="acts"><button class="btn" id="f4">ファイルから読み込み直す</button><button class="btn lnk" id="f5">連携を解除</button></div>':'<p class="sub">この章はまだファイルと連携していません。「上書き保存」か「名前を付けて保存」で保存先を選ぶと、連携します。</p>')
-    +'<p class="sub">Ctrl+S(Macは⌘+S)でも上書き保存できます。ここでの保存は、整形(全角スペースや空行の追加、ルビの変換)をせず、本文をそのまま書き込みます。ルビは「|漢字《かんじ》」の形で入ります。Dropboxなどの同期フォルダにあるファイルを選ぶと、他のパソコンにも反映されます。</p>'}
-  sheet('書き出しとバックアップ',bkHtml()+fl+'<div class="sec">投稿サイト向け</div><div class="acts"><button class="btn pri" id="x1">この章の本文をコピー</button><button class="btn" id="x2">全章をまとめてコピー</button></div><p class="sub">'+esc(sum)+'。整形は設定の「書き出しの整形」で変えられます。</p><div class="sec">ファイルで保存</div><div class="acts"><button class="btn" id="x3">この章をtxtで保存</button><button class="btn" id="x4">全章を1つのtxtで保存</button><button class="btn" id="x5">章ごとのtxtをZIPで保存</button><button class="btn" id="x6">Word(docx)で保存</button></div><div class="acts"><button class="btn lnk" id="x7">ルビや傍点をプレビューで確認</button></div>',function(r){
-    bkBind(r);
-    if(FS){r.querySelector('#f1').onclick=openTxt;r.querySelector('#f2').onclick=function(){saveLinked(false).then(function(ok){if(ok)closeLayers()})};r.querySelector('#f3').onclick=function(){saveLinked(true).then(function(ok){if(ok)closeLayers()})};
-      var f4=r.querySelector('#f4');if(f4){f4.onclick=reloadLinked;r.querySelector('#f5').onclick=unlinkTxt}}
+  var fl=fileHtml();
+  sheet('ファイルと書き出し',fl+'<div class="sec">投稿サイト向け</div><div class="acts"><button class="btn pri" id="x1">この章の本文をコピー</button><button class="btn" id="x2">全章をまとめてコピー</button></div><p class="sub">'+esc(sum)+'。整形は設定の「書き出しの整形」で変えられます。</p><div class="sec">ファイルで保存</div><div class="acts"><button class="btn" id="x3">この章をtxtで保存</button><button class="btn" id="x4">投稿用に整形して、全章を1つのtxtで保存</button><button class="btn" id="x5">章ごとのtxtをZIPで保存</button><button class="btn" id="x6">Word(docx)で保存</button></div><div class="acts"><button class="btn lnk" id="x7">ルビや傍点をプレビューで確認</button></div>',function(r){
+    fileBind(r);
     r.querySelector('#x1').onclick=function(){copyText(chapterTxt(c,o,false))};
     r.querySelector('#x2').onclick=function(){copyText(workTxt(w,o))};
     r.querySelector('#x3').onclick=function(){saveFile(safeName(c.title)+'.txt',chapterTxt(c,o,false)+'\n')};
@@ -400,7 +407,7 @@ function outSheet(){var o=eo(),w=W(),c=C();
     r.querySelector('#x6').onclick=function(){if(!window.JSZip){toast('docxを作成できませんでした');return}var z=new JSZip();z.file('[Content_Types].xml',DX_CT);z.file('_rels/.rels',DX_RELS);z.file('word/document.xml',docXml(w,o));z.file('word/_rels/document.xml.rels',DX_DRELS);z.file('word/styles.xml',DX_STY);z.generateAsync({type:'blob',compression:'DEFLATE'}).then(function(b){saveFile(safeName(w.title)+'.docx',b)},function(){toast('docxを作成できませんでした')})};
     r.querySelector('#x7').onclick=previewOpen})}
 
-/* ===== パソコンのtxtファイルと連携(上書き保存)。対応ブラウザだけで有効 ===== */
+/* ===== 作品=1つのtxtファイル。パソコンでは同じファイルへ上書き保存(File System Access API)、対応しない端末では共有/ダウンロード ===== */
 var FS=!!(window.showOpenFilePicker&&window.showSaveFilePicker&&window.indexedDB&&window.isSecureContext);
 var FH={};
 var TXT_T=[{description:'テキストファイル',accept:{'text/plain':['.txt']}}];
@@ -409,42 +416,158 @@ function hPut(id,h){FH[id]=h;return idb().then(function(db){return new Promise(f
 function hGet(id){if(FH[id])return Promise.resolve(FH[id]);return idb().then(function(db){return new Promise(function(res){var r=db.transaction('h').objectStore('h').get(id);r.onsuccess=function(){if(r.result)FH[id]=r.result;res(r.result||null)};r.onerror=function(){res(null)}})}).catch(function(){return null})}
 function hDel(id){delete FH[id];return idb().then(function(db){return new Promise(function(res){var t=db.transaction('h','readwrite');t.objectStore('h').delete(id);t.oncomplete=function(){res()};t.onerror=function(){res()}})}).catch(function(){})}
 function hash32(t){var h=5381;for(var i=0;i<t.length;i++)h=((h<<5)+h+t.charCodeAt(i))|0;return h}
-function stripExt(n){return String(n||'').replace(/\.(txt|text)$/i,'')||'No title'}
+function stripExt(n){return String(n||'').replace(/\.(txt|text)$/i,'')||'無題の作品'}
 function hhmm(t){var d=new Date(t);return pad(d.getHours())+':'+pad(d.getMinutes())}
 async function grant(h,mode){var o={mode:mode};try{if((await h.queryPermission(o))==='granted')return true;return (await h.requestPermission(o))==='granted'}catch(e){return false}}
 async function readTxt(file){var buf=await file.arrayBuffer(),t,sj=false;
   try{t=new TextDecoder('utf-8',{fatal:true}).decode(buf)}catch(e){try{t=new TextDecoder('shift_jis').decode(buf);sj=true}catch(e2){t=new TextDecoder('utf-8').decode(buf)}}
-  t=t.replace(/^﻿/,'');var crlf=/\r\n/.test(t);t=t.replace(/\r\n?/g,'\n').replace(/\n$/,'');return {text:t,crlf:crlf,sj:sj}}
-function fileDirty(c){return !!(c.link&&c.link.hs!==hash32(c.text))}
-async function openTxt(){var hs;try{hs=await showOpenFilePicker({types:TXT_T,multiple:false})}catch(e){return}
+  t=t.replace(/^﻿/,'');var crlf=/\r\n/.test(t);t=t.replace(/\r\n?/g,'\n');return {text:t,crlf:crlf,sj:sj}}
+
+/* 状態 */
+function isDirty(){var w=W();
+  if(!w.link)return w.chs.length>1||w.chs.some(function(c){return c.text.trim()!==''});
+  return w.link.hs!==hash32(workToTxt(w))}
+function updateSaveUI(){var w=W(),d=isDirty();
+  $('bSave').classList.toggle('dirty',d);$('dw-dot').hidden=!d;$('dw-title').textContent=w.title;
+  $('dw-sub').textContent=w.chs.length+'章 ・ '+(d?'保存していない変更があります':(w.link?'保存済み '+hhmm(w.link.at):'まだ変更がありません'))}
+var suT=0;
+function schedSaveUI(){clearTimeout(suT);suT=setTimeout(updateSaveUI,300)}
+
+/* 作品を丸ごと入れ替える */
+function setWork(title,parsed,link){var w=newWork(title);
+  w.chs=parsed.map(function(p){var n=newChapter(p.title);n.text=p.text;return n});w.cur=w.chs[0].id;
+  D.works=[w];D.cur=w.id;UH={};
+  if(link){link.hs=hash32(workToTxt(w));w.link=link}
+  persist();renderAll()}
+
+/* 確認ダイアログ(シート)。選んだボタンの番号を返す。閉じたら-1 */
+function ask(title,msg,btns){return new Promise(function(res){
+  sheet(title,'<p>'+esc(msg).replace(/\n/g,'<br>')+'</p><div class="acts">'+btns.map(function(b,i){return '<button class="btn'+(i===0?' pri':'')+'" data-i="'+i+'">'+esc(b)+'</button>'}).join('')+'</div>',function(r){
+    askRes=res;
+    r.querySelectorAll('[data-i]').forEach(function(b){b.onclick=function(){askRes=null;closeLayers();res(+b.dataset.i)}})})})}
+/* 保存していない変更があるとき、先へ進んでよいか確認する */
+async function guard(what){if(!isDirty())return true;
+  var i=await ask('保存していない変更があります','「'+W().title+'」には、まだ保存していない変更があります。'+what+'前に、保存しますか?',['保存してから進む','保存せずに進む','やめる']);
+  if(i===0){var r=await saveWork(false);if(!r.ok)return false;
+    if(r.picker){toast('保存しました。もう一度、操作を行ってください');return false}return true}
+  return i===1}
+
+/* 開く */
+async function openTxtFlow(){
+  if(!(await guard('別のファイルを開く')))return;
+  if(!FS){$('open-f').click();return}
+  var hs;try{hs=await showOpenFilePicker({types:TXT_T,multiple:false})}catch(e){if(!e||e.name!=='AbortError')toast('もう一度「開く」を押してください');return}
   var h=hs[0];if(!(await grant(h,'readwrite'))){toast('ファイルへの書き込みが許可されませんでした');return}
-  try{var f=await h.getFile(),r=await readTxt(f),w=W(),c=newChapter(stripExt(h.name));c.text=r.text;c.link={name:h.name,mod:f.lastModified,hs:hash32(r.text),at:now(),crlf:r.crlf};
-    w.chs.push(c);w.cur=c.id;w.at=now();await hPut(c.id,h);persist();renderAll();closeLayers();
-    toast('「'+h.name+'」を新しい章として開きました'+(r.sj?'(Shift_JISのため、上書き保存するとUTF-8に変わります)':''))}
+  try{var f=await h.getFile(),r=await readTxt(f);await hPut('work',h);
+    setWork(stripExt(h.name),txtToChapters(r.text),{name:h.name,mod:f.lastModified,at:now(),crlf:r.crlf});closeLayers();
+    toast('「'+h.name+'」を開きました'+(r.sj?'(Shift_JISのため、保存するとUTF-8に変わります)':''))}
   catch(e){toast('ファイルを開けませんでした')}}
-async function saveLinked(asNew){var c=C(),h=asNew?null:await hGet(c.id);
+function bindOpenInput(){$('open-f').addEventListener('change',async function(e){var f=e.target.files&&e.target.files[0];e.target.value='';if(!f)return;
+  try{var r=await readTxt(f);hDel('work');
+    setWork(stripExt(f.name),txtToChapters(r.text),{name:f.name,at:now(),crlf:r.crlf,noHandle:true});closeLayers();
+    toast('「'+f.name+'」を開きました'+(r.sj?'(Shift_JISのため、保存するとUTF-8に変わります)':''))}
+  catch(e2){toast('ファイルを開けませんでした')}})}
+
+/* 保存。FS対応:同じファイルへ上書き / 非対応:共有メニューかダウンロード */
+async function saveWork(asNew){var w=W(),txt=workToTxt(w),crlf=!!(w.link&&w.link.crlf);
+  var out=crlf?txt.replace(/\n/g,'\r\n'):txt;
+  if(!FS){var nm=(w.link&&w.link.name)||safeName(w.title)+'.txt';
+    var ok=await saveFile(nm,out);if(!ok)return {ok:false};
+    w.link={name:nm,hs:hash32(txt),at:now(),crlf:crlf,noHandle:true};persist();updateSaveUI();return {ok:true,picker:false}}
+  var h=asNew?null:await hGet('work'),picker=false;
   try{
-    if(!h){var sug=(c.link&&c.link.name)||safeName(c.title)+'.txt';h=await showSaveFilePicker({suggestedName:sug,types:TXT_T});c.link=c.link||{};c.link.crlf=!!c.link.crlf;await hPut(c.id,h);c.link.mod=0;asNew=true}
+    if(!h){var sug=(w.link&&w.link.name)||safeName(w.title)+'.txt';h=await showSaveFilePicker({suggestedName:sug,types:TXT_T});picker=true;await hPut('work',h)}
     else{
-      if(!(await grant(h,'readwrite'))){toast('ファイルへの書き込みが許可されませんでした');return false}
+      if(!(await grant(h,'readwrite'))){toast('ファイルへの書き込みが許可されませんでした');return {ok:false}}
       var cur=await h.getFile();
-      if(c.link&&c.link.mod&&cur.lastModified!==c.link.mod&&!confirm('このファイルは、最後に保存したあと別の場所で更新されています。\n上書きすると、その変更は失われます。上書きしますか?')){toast('上書き保存を中止しました');return false}}
-    var out=c.text.replace(/\n$/,'')+'\n';if(c.link&&c.link.crlf)out=out.replace(/\n/g,'\r\n');
+      if(w.link&&w.link.mod&&cur.lastModified!==w.link.mod){
+        var i=await ask('ファイルが更新されています','このファイルは、最後に保存したあと、別の場所で更新されています。\n上書きすると、その変更は失われます。',['上書きする','やめる']);
+        if(i!==0){if(i===1)toast('上書き保存を中止しました');return {ok:false}}}}
     var wr=await h.createWritable();await wr.write(new Blob([out],{type:'text/plain'}));await wr.close();
-    var f2=await h.getFile();c.link={name:h.name,mod:f2.lastModified,hs:hash32(c.text),at:now(),crlf:!!(c.link&&c.link.crlf)};persist();
-    toast('「'+h.name+'」に'+(asNew?'保存しました':'上書き保存しました'));return true}
-  catch(e){if(e&&e.name==='AbortError')return false;
-    if(e&&e.name==='NotFoundError'){toast('元のファイルが見つかりません。「名前を付けて保存」で保存先を選び直してください');return false}
-    toast('保存できませんでした');return false}}
-async function reloadLinked(){var c=C(),h=await hGet(c.id);if(!h){toast('連携しているファイルがありません');return}
+    var f2=await h.getFile();w.link={name:h.name,mod:f2.lastModified,hs:hash32(txt),at:now(),crlf:crlf};
+    if(picker)w.title=stripExt(h.name);
+    persist();updateSaveUI();extSeen=f2.lastModified;
+    toast('「'+h.name+'」に'+(picker?'保存しました':'上書き保存しました'));return {ok:true,picker:picker}}
+  catch(e){if(e&&e.name==='AbortError')return {ok:false};
+    if(e&&e.name==='NotFoundError'){toast('元のファイルが見つかりません。「名前を付けて保存」で保存先を選び直してください');return {ok:false}}
+    toast('保存できませんでした');return {ok:false}}}
+
+/* 新しい作品 */
+async function newWorkFlow(){if(!(await guard('新しい作品を始める')))return;
+  hDel('work');setWork('無題の作品',[{title:'No title',text:''}],null);closeLayers();toast('新しい作品を始めました')}
+
+/* ファイルから読み込み直す(章の名前が同じなら、元の本文は履歴に残す) */
+async function reloadFromFile(){var w=W(),h=await hGet('work');
+  if(!h){toast('この作品は、パソコン上のファイルとつながっていません');return}
+  if(isDirty()){var q=await ask('読み込み直しますか?','保存していない変更は、失われます(同じ名前の章は、元の本文が履歴に残ります)。',['読み込み直す','やめる']);if(q!==0)return}
   if(!(await grant(h,'read'))){toast('ファイルの読み取りが許可されませんでした');return}
-  try{var f=await h.getFile(),r=await readTxt(f);
-    if(r.text===c.text){c.link.mod=f.lastModified;c.link.hs=hash32(c.text);persist();toast('ファイルの内容は今の本文と同じです');return}
-    snap(c,true);c.text=r.text;c.at=now();W().at=now();c.link={name:h.name,mod:f.lastModified,hs:hash32(r.text),at:now(),crlf:r.crlf};
-    setEditor(c.text);pushUndo();persist();updateCount();renderDrawer();closeLayers();toast('ファイルの内容に読み込み直しました。元の本文は履歴から戻せます')}
+  try{var f=await h.getFile(),r=await readTxt(f),parsed=txtToChapters(r.text),used={};
+    var chs=parsed.map(function(p){var old=w.chs.filter(function(c){return !used[c.id]&&c.title===p.title})[0];
+      if(old){used[old.id]=1;if(old.text!==p.text){snap(old,true);old.text=p.text;old.at=now()}return old}
+      var n=newChapter(p.title);n.text=p.text;return n});
+    w.chs=chs;if(!chs.some(function(c){return c.id===w.cur}))w.cur=chs[0].id;w.at=now();UH={};
+    w.link={name:h.name,mod:f.lastModified,at:now(),crlf:r.crlf};w.link.hs=hash32(workToTxt(w));extSeen=f.lastModified;
+    persist();renderAll();closeLayers();toast('ファイルの内容に読み込み直しました')}
   catch(e){toast('ファイルを読み込めませんでした')}}
-function unlinkTxt(){var c=C();delete c.link;hDel(c.id);persist();closeLayers();toast('連携を解除しました(ファイルは残っています)')}
-if(FS)document.addEventListener('keydown',function(e){if((e.ctrlKey||e.metaKey)&&!e.altKey&&!e.shiftKey&&(e.key==='s'||e.key==='S')){e.preventDefault();saveLinked(false)}});
+
+/* 別の場所でファイルが更新されたら知らせる */
+var extSeen=0;
+async function checkExternal(){if(!FS||document.hidden)return;var w=W();if(!w.link||!w.link.mod)return;
+  var h=FH.work||await hGet('work');if(!h)return;
+  try{if((await h.queryPermission({mode:'read'}))!=='granted')return;var f=await h.getFile();
+    if(f.lastModified!==w.link.mod&&f.lastModified!==extSeen){extSeen=f.lastModified;
+      toast('このファイルは、別の場所で更新されています',{label:'読み込み直す',fn:reloadFromFile})}}catch(e){}}
+
+/* 「ファイルと書き出し」シートの上段 */
+function fileHtml(){var w=W(),d=isDirty(),n=(D.legacy||[]).length,lk=w.link;
+  var st=d?'保存していない変更があります':(lk?'保存済み '+hhmm(lk.at):'まだ変更がありません');
+  return '<div class="sec">この作品のファイル</div><div class="row"><span>'+esc(w.title)+'<small>'+(lk?esc(lk.name)+' ・ ':'')+st+'</small></span></div>'
+   +'<div class="acts"><button class="btn" id="f-open">開く</button><button class="btn pri" id="f-save">'+(FS?'上書き保存':'保存')+'</button></div>'
+   +'<div class="acts">'+(FS?'<button class="btn" id="f-as">名前を付けて保存</button>':'')+'<button class="btn" id="f-new">新しい作品</button>'+(FS&&lk&&!lk.noHandle?'<button class="btn" id="f-re">ファイルから読み込み直す</button>':'')+'</div>'
+   +'<p class="sub">作品は、1つのtxtファイルです。章の区切りは、行頭の「## 章のタイトル」です(章が1つで題がないときは、見出しなしの普通のtxtになります)。'
+   +(FS?'Ctrl+S(Macは⌘+S)でも上書き保存できます。Dropboxなどの同期フォルダにあるファイルを選ぶと、ほかのパソコンにも反映されます。':'この端末のブラウザでは、同じファイルへの上書きはできません。保存のたびに、共有メニュー(またはダウンロード)から保存してください。Dropboxなどを選ぶと、同じ名前のファイルを置き換えられることがあります。')+'</p>'
+   +(n?'<div class="acts"><button class="btn lnk" id="f-mig">古い形式の作品('+n+'件)を移行する</button></div>':'')}
+function fileBind(r){
+  function q(id){return r.querySelector(id)}
+  q('#f-open').onclick=openTxtFlow;
+  q('#f-save').onclick=function(){saveWork(false).then(function(x){if(x.ok)closeLayers()})};
+  var a=q('#f-as');if(a)a.onclick=function(){saveWork(true).then(function(x){if(x.ok)closeLayers()})};
+  q('#f-new').onclick=newWorkFlow;
+  var re=q('#f-re');if(re)re.onclick=reloadFromFile;
+  var m=q('#f-mig');if(m)m.onclick=migSheet}
+function bindFileUI(){
+  $('bSave').onclick=function(){saveWork(false)};
+  $('dw-save').onclick=function(){saveWork(false)};
+  $('dw-open').onclick=openTxtFlow;
+  $('dw-more').onclick=outSheet;
+  bindOpenInput();
+  document.addEventListener('keydown',function(e){if((e.ctrlKey||e.metaKey)&&!e.altKey&&!e.shiftKey&&(e.key==='s'||e.key==='S')){e.preventDefault();saveWork(false)}});
+  document.addEventListener('visibilitychange',function(){if(!document.hidden)checkExternal()});
+  window.addEventListener('focus',checkExternal)}
+
+/* 古い形式(複数作品)からの移行 */
+function legacyName(x,used){var b=safeName(x.title),n=b,k=2;while(used[n.toLowerCase()]){n=b+' ('+k+')';k++}used[n.toLowerCase()]=1;return n+'.txt'}
+function migSheet(){var L=D.legacy||[];if(!L.length){closeLayers();return}
+  var h='<p>以前のバージョンで作った作品が、この端末に残っています。txtファイルに書き出してから、古いデータを消してください。いま開いている作品は、保存ボタンから保存できます(ここには出ません)。</p>';
+  L.forEach(function(x,i){var n=0;x.chs.forEach(function(c){n+=countChars(c.text,'ns')});
+    h+='<div class="row"><span>'+esc(x.title)+'<small>'+x.chs.length+'章 ・ '+fmtN(n)+'字'+(x.done?' ・ 書き出し済み':'')+'</small></span>'+(FS?'':'<button class="btn sm" data-m="'+i+'">保存</button>')+'</div>'});
+  h+=(FS?'<div class="acts"><button class="btn pri" id="m-all">フォルダを選んで、まとめて書き出す</button></div><p class="sub">選んだフォルダに、作品ごとに「作品名.txt」を作ります。同じ名前のファイルがあるときは、上書きせず「作品名 (2).txt」にします。</p>':'')
+    +'<div class="acts"><button class="btn dng" id="m-fin">移行を終えて、古いデータを消す</button><button class="btn" id="m-later">あとで</button></div>';
+  sheet('古い作品を移行',h,function(r){
+    r.querySelector('#m-later').onclick=closeLayers;
+    r.querySelectorAll('[data-m]').forEach(function(b){b.onclick=function(){var x=L[+b.dataset.m];saveFile(safeName(x.title)+'.txt',workToTxt({chs:x.chs})).then(function(ok){if(ok){x.done=true;persist();migSheet()}})}});
+    var all=r.querySelector('#m-all');
+    if(all)all.onclick=async function(){var d;try{d=await showDirectoryPicker({mode:'readwrite'})}catch(e){return}
+      var used={},n=0;
+      try{
+        for(var k=0;k<L.length;k++){var x=L[k],nm=legacyName(x,used);
+          while(true){var ex=true;try{await d.getFileHandle(nm)}catch(e){ex=false}if(!ex)break;nm=legacyName(x,used)}
+          var fh=await d.getFileHandle(nm,{create:true}),wr=await fh.createWritable();await wr.write(new Blob([workToTxt({chs:x.chs})],{type:'text/plain'}));await wr.close();x.done=true;n++}
+        persist();toast(n+'作品を「'+d.name+'」に書き出しました');migSheet()}
+      catch(e){persist();toast('書き出せませんでした');migSheet()}};
+    r.querySelector('#m-fin').onclick=async function(){var left=L.filter(function(x){return !x.done}).length;
+      var i=await ask('古いデータを消しますか?',(left?'まだ書き出していない作品が'+left+'件あります。':'すべて書き出し済みです。')+'消したデータは、元に戻せません。',['消す','やめる']);
+      if(i!==0)return;D.legacy=[];persist();updateSaveUI();toast('古いデータを消しました')}})}
 
 function previewOpen(){closeLayers();var h='';C().text.replace(/\n+$/,'').split('\n').forEach(function(l){h+='<p>'+(l.trim()===''?'&nbsp;':parseLine(l).map(function(p){return p.t==='x'?esc(p.s):p.t==='e'?'<em>'+esc(p.s)+'</em>':'<ruby>'+esc(p.b)+'<rt>'+esc(p.r)+'</rt></ruby>'}).join(''))+'</p>'});
   var pv=$('pv');pv.innerHTML=h||'<p>(本文がありません)</p>';pv.classList.toggle('v',D.s.dir==='v');$('prev').hidden=false;pv.scrollTop=0;pv.scrollLeft=0;$('pv-x').focus({preventScroll:true})}
@@ -453,6 +576,7 @@ function seg(k,opts){return '<div class="seg" data-k="'+k+'">'+opts.map(function
 function sw(k,label,sub){return '<label class="row"><span>'+label+(sub?'<small>'+sub+'</small>':'')+'</span><input type="checkbox" class="sw" role="switch" data-k="'+k+'"'+(D.s[k]?' checked':'')+'></label>'}
 function sel(k,opts){return '<select data-k="'+k+'" aria-label="'+k+'">'+opts.map(function(o){return '<option value="'+o[0]+'"'+(String(D.s[k])===String(o[0])?' selected':'')+'>'+o[1]+'</option>'}).join('')+'</select>'}
 function setSetting(k,v){D.s[k]=v;if(k==='cm'){updateCount();renderDrawer()}applyView();persist();if(k==='dir'||k==='lh'||k==='size'||k==='font'){}}
+function mxLabel(v){return v?v+'px':'なし'}
 function settingsSheet(){
   var h='<div class="sec">表示</div>'
    +'<div class="row"><span>画面の明るさ</span>'+seg('theme',[['a','自動'],['l','ライト'],['d','ダーク']])+'</div>'
@@ -460,6 +584,7 @@ function settingsSheet(){
    +'<div class="row"><span>フォント</span>'+seg('font',[['m','明朝'],['g','ゴシック']])+'</div>'
    +'<div class="row"><span>文字の大きさ<small id="szv">'+D.s.size+'px</small></span><input type="range" min="14" max="28" step="1" value="'+D.s.size+'" data-k="size" aria-label="文字の大きさ"></div>'
    +'<div class="row"><span>行間</span>'+seg('lh',[['2','ゆったり'],['1.8','標準'],['1.55','詰める']])+'</div>'
+   +'<div class="row"><span>横書きの左右の余白<small id="mxv">'+mxLabel(D.s.mx||0)+'</small></span><input type="range" min="0" max="320" step="8" value="'+(D.s.mx||0)+'" data-k="mx" aria-label="横書きの左右の余白"></div><p class="sub">画面が広いときに文章が横に伸びすぎないよう、左右に余白をつくります。横書きのときだけ働きます。画面が狭いときは自動で小さくなります。</p>'
    +sw('hidetop','入力中は上のメニューと章名を隠す','下の段の「✓」を押すと戻ります')
    +sw('temph','入力中だけ横書きで表示','縦書きで書くとき、キーボードを開いている間だけ横書きになります')
    +sw('vkeys','縦書きのとき左右キーで文字単位に動かす','左右キーが上下キーと同じ動き(文字ごとの移動)になります。縦書きのときだけ働きます')
@@ -472,52 +597,15 @@ function settingsSheet(){
    +'<div class="row"><span>ルビ・傍点</span>'+sel('ruby',[['keep','そのまま(|漢字《かんじ》)'],['paren','括弧書きにする'],['strip','外す']])+'</div>'
    +sw('titles','全章を1つにするとき章タイトルを入れる')
    +'<div class="row"><span>章の区切り</span>'+sel('sep',[['blank','空行'],['star','* * *']])+'</div>'
-   +'<div class="sec">バックアップ</div>'
-   +sw('remind','バックアップのお知らせ','7日以上書き出していないときに知らせます')
-   +'<div class="acts"><button class="btn" id="bk-open">バックアップの書き出し・読み込みを開く</button></div>'
-   +'<p class="sub">バックアップは、上の書き出しボタン(右上の矢印のアイコン)からも開けます。作品は、この端末の中に自動で保存されます。端末の初期化や、アプリ・ブラウザのデータの削除で失われるので、ときどきバックアップを書き出してください。</p>';
+   +'<div class="sec">保存について</div>'
+   +'<p class="sub">作品の本体は、txtファイルです。上の段の保存ボタン(またはCtrl+S)で保存します。作品は、この端末にも自動で一時保存されますが、端末の初期化や、アプリ・ブラウザのデータの削除で失われることがあるので、txtファイルで保存しておいてください。</p>';
   sheet('設定',h,function(r){
     r.querySelectorAll('.seg').forEach(function(g){g.addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;var k=g.dataset.k,v=b.dataset.v;if(k==='lh')v=parseFloat(v);setSetting(k,v);g.querySelectorAll('button').forEach(function(x){x.setAttribute('aria-pressed',String(x===b))})})});
     r.querySelectorAll('input.sw').forEach(function(i){i.addEventListener('change',function(){setSetting(i.dataset.k,i.checked)})});
     r.querySelectorAll('select').forEach(function(s){s.addEventListener('change',function(){setSetting(s.dataset.k,s.value)})});
-    r.querySelector('input[type=range]').addEventListener('input',function(e){var v=+e.target.value;D.s.size=v;r.querySelector('#szv').textContent=v+'px';applyView();schedSave()});
-    r.querySelector('#bk-open').onclick=outSheet})}
-
-function wkJson(w){return {id:w.id,title:w.title,cur:w.cur,chs:w.chs.map(function(c){return {id:c.id,title:c.title,text:c.text,at:c.at}})}}
-function dlBackup(){var data={app:'genkocho',v:1,at:now(),s:D.s,works:D.works.map(wkJson)};
-  saveFile('Algernonバックアップ_'+dateStr()+'.json',JSON.stringify(data)).then(function(ok){if(ok){D.lastBackup=now();persist()}})}
-function backupOut(){if(!FS){dlBackup();return}hGet('__dir').then(function(d){if(d)folderOut(false);else dlBackup()})}
-async function folderOut(pick){var d=pick?null:await hGet('__dir');
-  try{
-    if(!d){try{d=await showDirectoryPicker({mode:'readwrite'})}catch(e){if(e&&e.name==='AbortError')return false;throw e}await hPut('__dir',d)}
-    else if(!(await grant(d,'readwrite'))){toast('フォルダへの書き込みが許可されませんでした');return false}
-    var used={},n=0;
-    for(var i=0;i<D.works.length;i++){var w=D.works[i],nm=safeName(w.title),k=nm,j=2;while(used[k.toLowerCase()])k=nm+'_'+(j++);used[k.toLowerCase()]=1;
-      var fh=await d.getFileHandle(k+'.json',{create:true}),wr=await fh.createWritable();
-      await wr.write(new Blob([JSON.stringify({app:'genkocho',v:1,at:now(),s:D.s,works:[wkJson(w)]})],{type:'application/json'}));await wr.close();n++}
-    D.lastBackup=now();persist();toast(n+'作品を「'+d.name+'」に書き出しました(同じ名前のファイルは上書き)');return true}
-  catch(e){toast('書き出せませんでした。フォルダを選び直してみてください');return false}}
-function importDoc(d){var added=0,merged=0;
-  d.works.forEach(function(w){
-    var ids={};D.works.forEach(function(x){x.chs.forEach(function(c){ids[c.id]=1})});
-    var loc=w.id?D.works.filter(function(x){return x.id===w.id})[0]:null;
-    if(loc){(w.chs||[]).forEach(function(c){var t=String(c.text||''),ex=c.id?loc.chs.filter(function(y){return y.id===c.id})[0]:null;
-        if(ex){if(ex.text!==t){snap(ex,true);ex.text=t;ex.title=String(c.title||ex.title);ex.at=now();delete UH[ex.id];merged++}}
-        else{var id=(c.id&&!ids[c.id])?c.id:uid();ids[id]=1;loc.chs.push({id:id,title:String(c.title||'No title'),text:t,hist:[],snapAt:0,at:now()});merged++}});
-      loc.at=now()}
-    else{var chs=(w.chs||[]).map(function(c){var id=(c.id&&!ids[c.id])?c.id:uid();ids[id]=1;return {id:id,title:String(c.title||'No title'),text:String(c.text||''),hist:[],snapAt:0,at:now()}});if(!chs.length)chs=[newChapter()];
-      D.works.push({id:(w.id&&!D.works.some(function(x){return x.id===w.id}))?w.id:uid(),title:String(w.title||'読み込んだ作品'),chs:chs,cur:chs[0].id,trash:[],at:now()});added++}});
-  return {added:added,merged:merged}}
-function importTexts(texts){var A=0,M=0,bad=0,w0=(D.works.length===1&&D.works[0].chs.length===1&&!D.works[0].chs[0].text&&!D.works[0].chs[0].hist.length)?D.works[0]:null;
-  texts.forEach(function(t){try{var d=JSON.parse(t);if(!d||d.app!=='genkocho'||!d.works)throw 0;var r=importDoc(d);A+=r.added;M+=r.merged}catch(e){bad++}});
-  if(w0&&A&&D.works.length>1){D.works=D.works.filter(function(x){return x!==w0});if(D.cur===w0.id)D.cur=D.works[0].id}
-  if(A||M){persist();scheduleCloud();renderAll();closeLayers()}
-  var m=[];if(A)m.push(A+'作品を追加');if(M)m.push('同じ作品の'+M+'章を反映(元の本文は履歴に残ります)');if(!A&&!M&&!bad)m.push('変更はありませんでした');if(bad)m.push(bad+'個のファイルは読み込めませんでした');
-  toast(m.join('、'))}
-function backupIn(fs){if(!fs)return;fs=[].slice.call(fs);if(!fs.length)return;Promise.all(fs.map(function(f){return f.text()})).then(importTexts)}
-async function folderIn(){var d=await hGet('__dir'),o={types:[{description:'Algernonのバックアップ',accept:{'application/json':['.json']}}],multiple:true};
-  if(d)o.startIn=d;var hs;try{hs=await showOpenFilePicker(o)}catch(e){return}
-  try{var fl=await Promise.all(hs.map(function(h){return h.getFile()}));backupIn(fl)}catch(e){toast('ファイルを開けませんでした')}}
+    r.querySelector('input[data-k=size]').addEventListener('input',function(e){var v=+e.target.value;D.s.size=v;r.querySelector('#szv').textContent=v+'px';applyView();schedSave()});
+    r.querySelector('input[data-k=mx]').addEventListener('input',function(e){var v=+e.target.value;D.s.mx=v;r.querySelector('#mxv').textContent=mxLabel(v);applyView();schedSave()});
+    })}
 
 function scheduleCloud(){}
 
@@ -545,7 +633,7 @@ $('bRuby').addEventListener('click',addRuby);$('bEm').addEventListener('click',a
 $('bUndo2').addEventListener('click',undo);$('bRedo2').addEventListener('click',redo);
 $('bDone').addEventListener('click',exitEditing);
 $('reveal').addEventListener('click',exitEditing);
-$('bMenu2').addEventListener('click',function(){exitEditing();openDrawer()});
+$('bMenu2').addEventListener('click',function(){menuBtn(true)});
 
 ed.addEventListener('keydown',function(e){
   if(!D.s.vkeys||!ed.classList.contains('v')||e.isComposing||e.keyCode===229)return;
@@ -565,10 +653,10 @@ if(vv){vv.addEventListener('resize',fit);vv.addEventListener('scroll',fit)}
 
 try{ed.setAttribute('contenteditable','plaintext-only');if(ed.contentEditable!=='plaintext-only')ed.contentEditable='true'}catch(e){ed.contentEditable='true'}
 renderAll();
+if(isDock()&&D.s.dock)openDrawer();
 try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}
-setTimeout(function(){if(!D.s.remind)return;var total=0;D.works.forEach(function(w){w.chs.forEach(function(c){total+=c.text.length})});if(total<500)return;
-  var days=D.lastBackup?Math.floor((now()-D.lastBackup)/86400000):null;if(D.lastBackup&&days<7)return;
-  toast(D.lastBackup?'バックアップを書き出して'+days+'日以上たちました':'まだバックアップを書き出していません',{label:'書き出す',fn:backupOut})},2500);
+bindFileUI();updateSaveUI();
+if(D.legacy&&D.legacy.length){if(!D.migShown){D.migShown=1;persist();setTimeout(migSheet,700)}else setTimeout(function(){toast('古い形式の作品が'+D.legacy.length+'件、この端末に残っています',{label:'移行する',fn:migSheet})},1800)}
 })();
 </script>
 <script>
