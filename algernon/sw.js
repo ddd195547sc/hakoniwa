@@ -1,4 +1,4 @@
-var V="algernon-v11";
+var V="algernon-v12";
 var SHELL=["./","index.html","manifest.webmanifest","jszip.min.js","icon-192.png","icon-512.png","apple-touch-icon.png"];
 self.addEventListener("install",function(e){e.waitUntil(caches.open(V).then(function(c){return Promise.all(SHELL.map(function(u){return fetch(u,{cache:"reload"}).then(function(res){if(!res.ok)throw new Error(u);return c.put(u,res)})}))}).then(function(){return self.skipWaiting()}))});
 self.addEventListener("activate",function(e){e.waitUntil(caches.keys().then(function(ks){return Promise.all(ks.filter(function(k){return k.indexOf("algernon-")===0&&k!==V}).map(function(k){return caches.delete(k)}))}).then(function(){return self.clients.claim()}))});

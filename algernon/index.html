@@ -103,7 +103,7 @@ button{cursor:pointer}
 .seg button[aria-pressed="true"]{background:var(--accbg);color:var(--acc)}
 select{background:var(--bg);border:.5px solid var(--line);border-radius:8px;padding:10px 10px;font-size:14px;max-width:62%}
 input[type=range]{width:46%;accent-color:var(--acc)}
-input[type=text]{width:100%;font-size:16px;padding:9px 10px;border:.5px solid var(--line);border-radius:8px;background:var(--bg)}
+input[type=text],input[type=date]{width:100%;font-size:16px;padding:9px 10px;border:.5px solid var(--line);border-radius:8px;background:var(--bg)}
 input.sw{appearance:none;-webkit-appearance:none;width:40px;height:24px;border-radius:12px;background:var(--line);position:relative;flex:none;margin:0;transition:background .15s}
 input.sw::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:var(--bg);transition:transform .15s}
 input.sw:checked{background:var(--acc)}
@@ -230,11 +230,18 @@ function txtToChapters(t){var lines=String(t||'').replace(/^\uFEFF/,'').replace(
   lines.forEach(function(l){var m=/^## (.*)$/.exec(l);if(m){push();cur={title:(m[1].trim()||'No title'),lines:[]}}else{if(!cur)cur={title:'No title',lines:[],pre:true};cur.lines.push(l)}});
   push();if(chs.length>1&&chs[0].pre&&!chs[0].text.trim())chs.shift();
   chs.forEach(function(c){delete c.pre});if(!chs.length)chs=[{title:'No title',text:''}];return chs}
+function he(s){return String(s).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c]})}
+function diaryHtml(chs){var out=[];chs.forEach(function(c){String(c.text||'').replace(/\r\n?/g,'\n').split('\n').forEach(function(l){l=l.replace(/\s+$/,'').replace(/^[ \t]+/,'');if(l.trim()==='')return;
+    var lead=/^[「『（【〈“\u3000]/.test(plain(l));
+    var h=parseLine(l).map(function(p){return p.t==='x'?he(p.s):p.t==='e'?'<span class="kenten">'+he(p.s)+'</span>':'<ruby>'+he(p.b)+'<rt>'+he(p.r)+'</rt></ruby>'}).join('');
+    out.push('<p>'+(lead?'':'\u3000')+h+'</p>')})});
+  return out.length?'  '+out.join('\n              ')+'\n':''}
 </script>
 
 <script>
 (function(){
 'use strict';
+var APP_V='1.12'; /* sw.js の V(algernon-v12)の数字と、小数点以下を必ず合わせる */
 var LS='genkocho.v1',LSP='genkocho.v1.prev';
 function $(id){return document.getElementById(id)}
 function uid(){return 'x'+Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
@@ -387,7 +394,7 @@ function eo(){return {indent:D.s.ind,blank:D.s.blank,ruby:D.s.ruby,titles:D.s.ti
 async function copyText(t){try{await navigator.clipboard.writeText(t);toast('コピーしました');return}catch(e){}
   var ta=document.createElement('textarea');ta.value=t;ta.setAttribute('readonly','');ta.style.cssText='position:fixed;left:-999px;top:0;opacity:0';document.body.appendChild(ta);ta.select();ta.setSelectionRange(0,t.length);var ok=false;try{ok=document.execCommand('copy')}catch(e2){}document.body.removeChild(ta);toast(ok?'コピーしました':'コピーできませんでした')}
 async function saveFile(name,data){
-  var blob=(data instanceof Blob)?data:new Blob([data],{type:/\.json$/i.test(name)?'application/json':'text/plain;charset=utf-8'});
+  var blob=(data instanceof Blob)?data:new Blob([data],{type:/\.json$/i.test(name)?'application/json':(/\.html?$/i.test(name)?'text/html;charset=utf-8':'text/plain;charset=utf-8')});
   try{var f=new File([blob],name,{type:blob.type||'application/octet-stream'});
     if(navigator.canShare&&navigator.canShare({files:[f]})&&/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)){await navigator.share({files:[f],title:name});toast('保存しました');return true}
   }catch(e){if(e&&e.name==='AbortError')return false}
@@ -397,7 +404,7 @@ function dateStr(){var d=new Date();return d.getFullYear()+pad(d.getMonth()+1)+p
 function outSheet(){var o=eo(),w=W(),c=C();
   var sum='段落頭の全角スペース:'+(o.indent?'あり':'なし')+' ／ 段落間の空行:'+(o.blank?'あり':'なし')+' ／ ルビ・傍点:'+({keep:'そのまま',paren:'括弧書き',strip:'外す'}[o.ruby]);
   var fl=fileHtml();
-  sheet('ファイルと書き出し',fl+'<div class="sec">投稿サイト向け</div><div class="acts"><button class="btn pri" id="x1">この章の本文をコピー</button><button class="btn" id="x2">全章をまとめてコピー</button></div><p class="sub">'+esc(sum)+'。整形は設定の「書き出しの整形」で変えられます。</p><div class="sec">ファイルで保存</div><div class="acts"><button class="btn" id="x3">この章をtxtで保存</button><button class="btn" id="x4">投稿用に整形して、全章を1つのtxtで保存</button><button class="btn" id="x5">章ごとのtxtをZIPで保存</button><button class="btn" id="x6">Word(docx)で保存</button></div><div class="acts"><button class="btn lnk" id="x7">ルビや傍点をプレビューで確認</button></div>',function(r){
+  sheet('ファイルと書き出し',fl+'<div class="sec">投稿サイト向け</div><div class="acts"><button class="btn pri" id="x1">この章の本文をコピー</button><button class="btn" id="x2">全章をまとめてコピー</button></div><p class="sub">'+esc(sum)+'。整形は設定の「書き出しの整形」で変えられます。</p><div class="sec">ファイルで保存</div><div class="acts"><button class="btn" id="x3">この章をtxtで保存</button><button class="btn" id="x4">投稿用に整形して、全章を1つのtxtで保存</button><button class="btn" id="x5">章ごとのtxtをZIPで保存</button><button class="btn" id="x6">Word(docx)で保存</button></div><div class="sec">日記サイト用</div><div class="acts"><button class="btn" id="x8">日記用HTMLで保存</button></div><p class="sub">いま開いている作品を、サイトの日記の本文ファイル(diary_paragraphs_日付.html)にして保存します。</p><div class="acts"><button class="btn lnk" id="x7">ルビや傍点をプレビューで確認</button></div>',function(r){
     fileBind(r);
     r.querySelector('#x1').onclick=function(){copyText(chapterTxt(c,o,false))};
     r.querySelector('#x2').onclick=function(){copyText(workTxt(w,o))};
@@ -405,6 +412,7 @@ function outSheet(){var o=eo(),w=W(),c=C();
     r.querySelector('#x4').onclick=function(){saveFile(safeName(w.title)+'.txt',workTxt(w,o))};
     r.querySelector('#x5').onclick=function(){if(!window.JSZip){toast('ZIPを作成できませんでした');return}var z=new JSZip();w.chs.forEach(function(ch,i){z.file(pad(i+1)+'_'+safeName(ch.title)+'.txt',chapterTxt(ch,o,false)+'\n')});z.generateAsync({type:'blob',compression:'DEFLATE'}).then(function(b){saveFile(safeName(w.title)+'.zip',b)},function(){toast('ZIPを作成できませんでした')})};
     r.querySelector('#x6').onclick=function(){if(!window.JSZip){toast('docxを作成できませんでした');return}var z=new JSZip();z.file('[Content_Types].xml',DX_CT);z.file('_rels/.rels',DX_RELS);z.file('word/document.xml',docXml(w,o));z.file('word/_rels/document.xml.rels',DX_DRELS);z.file('word/styles.xml',DX_STY);z.generateAsync({type:'blob',compression:'DEFLATE'}).then(function(b){saveFile(safeName(w.title)+'.docx',b)},function(){toast('docxを作成できませんでした')})};
+    r.querySelector('#x8').onclick=diarySheet;
     r.querySelector('#x7').onclick=previewOpen})}
 
 /* ===== 作品=1つのtxtファイル。パソコンでは同じファイルへ上書き保存(File System Access API)、対応しない端末では共有/ダウンロード ===== */
@@ -569,6 +577,21 @@ function migSheet(){var L=D.legacy||[];if(!L.length){closeLayers();return}
       var i=await ask('古いデータを消しますか?',(left?'まだ書き出していない作品が'+left+'件あります。':'すべて書き出し済みです。')+'消したデータは、元に戻せません。',['消す','やめる']);
       if(i!==0)return;D.legacy=[];persist();updateSaveUI();toast('古いデータを消しました')}})}
 
+/* 日記用HTML(サイトの diary_paragraphs_YYYY-MM-DD.html)を書き出す */
+function diarySheet(){var w=W(),t=new Date(),ds=t.getFullYear()+'-'+pad(t.getMonth()+1)+'-'+pad(t.getDate());
+  sheet('日記用HTMLで保存','<label class="fl">日記の日付<input id="dd" type="date" value="'+ds+'"></label><p class="sub" id="dn"></p><div class="acts"><button class="btn pri" id="dsave">保存</button></div>'
+    +'<p class="sub">1行を1段落にします(空行は段落になりません)。段落の頭に全角スペースを付け、ルビと傍点はサイトの書き方に変えます。章が複数あるときは、章の見出しを除いて、本文を順に並べます。保存したファイルを、ビルド用フォルダに置いて build.bat を実行すると、サイトの日記になります。</p>',function(r){
+    var dd=r.querySelector('#dd'),dn=r.querySelector('#dn');
+    function nm(){return /^\d{4}-\d{2}-\d{2}$/.test(dd.value)?'diary_paragraphs_'+dd.value+'.html':''}
+    function show(){dn.textContent=nm()?'ファイル名: '+nm():'日付を選んでください'}
+    dd.addEventListener('input',show);show();
+    r.querySelector('#dsave').onclick=async function(){var n=nm();if(!n){toast('日付を選んでください');return}
+      var html=diaryHtml(w.chs);if(!html){toast('本文がありません');return}
+      if(!FS){if(await saveFile(n,html))closeLayers();return}
+      try{var h=await showSaveFilePicker({suggestedName:n,id:'algernon-diary',types:[{description:'HTMLファイル',accept:{'text/html':['.html']}}]});
+        var wr=await h.createWritable();await wr.write(new Blob([html],{type:'text/html'}));await wr.close();closeLayers();toast('「'+h.name+'」に保存しました')}
+      catch(e){if(e&&e.name==='AbortError')return;toast('保存できませんでした')}}})}
+
 function previewOpen(){closeLayers();var h='';C().text.replace(/\n+$/,'').split('\n').forEach(function(l){h+='<p>'+(l.trim()===''?'&nbsp;':parseLine(l).map(function(p){return p.t==='x'?esc(p.s):p.t==='e'?'<em>'+esc(p.s)+'</em>':'<ruby>'+esc(p.b)+'<rt>'+esc(p.r)+'</rt></ruby>'}).join(''))+'</p>'});
   var pv=$('pv');pv.innerHTML=h||'<p>(本文がありません)</p>';pv.classList.toggle('v',D.s.dir==='v');$('prev').hidden=false;pv.scrollTop=0;pv.scrollLeft=0;$('pv-x').focus({preventScroll:true})}
 
@@ -598,7 +621,8 @@ function settingsSheet(){
    +sw('titles','全章を1つにするとき章タイトルを入れる')
    +'<div class="row"><span>章の区切り</span>'+sel('sep',[['blank','空行'],['star','* * *']])+'</div>'
    +'<div class="sec">保存について</div>'
-   +'<p class="sub">作品の本体は、txtファイルです。上の段の保存ボタン(またはCtrl+S)で保存します。作品は、この端末にも自動で一時保存されますが、端末の初期化や、アプリ・ブラウザのデータの削除で失われることがあるので、txtファイルで保存しておいてください。</p>';
+   +'<p class="sub">作品の本体は、txtファイルです。上の段の保存ボタン(またはCtrl+S)で保存します。作品は、この端末にも自動で一時保存されますが、端末の初期化や、アプリ・ブラウザのデータの削除で失われることがあるので、txtファイルで保存しておいてください。</p>'
+   +'<div class="sec">バージョン</div><div class="row"><span>Algernon<small>新しい版に更新されたかの目安です</small></span><span>v'+APP_V+'</span></div>';
   sheet('設定',h,function(r){
     r.querySelectorAll('.seg').forEach(function(g){g.addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;var k=g.dataset.k,v=b.dataset.v;if(k==='lh')v=parseFloat(v);setSetting(k,v);g.querySelectorAll('button').forEach(function(x){x.setAttribute('aria-pressed',String(x===b))})})});
     r.querySelectorAll('input.sw').forEach(function(i){i.addEventListener('change',function(){setSetting(i.dataset.k,i.checked)})});
