@@ -18074,6 +18074,10 @@
       var path = currentPath();
       var match = resolveView(path);
 
+      // Archive の仲間(一覧・ジャンル別一覧・作品ページ)以外へ移動したら、絞り込みを初期化する。
+      // 作品ページはサイドバー上も Archive 扱いなので、シリーズ絞り込み→作品を読む→一覧に戻る、では絞り込みが残る。
+      if (match.nav !== '/works') resetArchiveFilters();
+
       var all = document.querySelectorAll('.view');
       all.forEach(function (el) {
         if (el.id === match.id) {
@@ -18153,6 +18157,7 @@
 
     var archiveSearchInput = document.getElementById('archive-search-input');
     var applyTagFilter = function () {}; // replaced below once the archive index exists
+    var resetArchiveFilters = function () {}; // replaced below: Archive 以外のページへ移ったとき、絞り込みを初期状態に戻す
     if (archiveSearchInput) {
       var archiveCategories = [
         { id: 'view-works-novel', label: '長編' },
@@ -18492,6 +18497,18 @@
       applyTagFilter = function (tag) {
         activeTagFilter = tag;
         if (tag) setTagFilterExpanded(true);
+        renderArchive();
+      };
+
+      // 検索語・タグ・シリーズ・年代・「一覧で見る」・並び順の手動切り替えを、すべて最初の状態に戻す
+      resetArchiveFilters = function () {
+        if (!(activeTagFilter || activeSeriesFilter || activeYearFilter || archiveSearchInput.value || manualListView || yearSortOverride)) return;
+        activeTagFilter = null;
+        activeSeriesFilter = null;
+        activeYearFilter = null;
+        yearSortOverride = null;
+        manualListView = false;
+        archiveSearchInput.value = '';
         renderArchive();
       };
 
