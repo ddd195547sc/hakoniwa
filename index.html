@@ -18103,7 +18103,8 @@
       if (path === '/diary') mark('diary');
       if (changed) { try { window.localStorage.setItem(NEWS_KEY, JSON.stringify(st)); } catch (e) {} }
       // ナビの点
-      var flags = { '/updates': newer(null, st.upd), '/works': newer('work', st.work), '/diary': newer('diary', st.diary) };
+      // Updates には点を付けない(2026-10-28 決定)。作品・日記の点と、更新履歴の NEW は従来どおり。
+      var flags = { '/works': newer('work', st.work), '/diary': newer('diary', st.diary) };
       document.querySelectorAll('#sidebar-nav a').forEach(function (a) {
         var on = !!flags[a.getAttribute('data-route')];
         a.classList.toggle('has-news', on);
