@@ -2828,6 +2828,12 @@
 <h2 class="hub-heading ui-font">Updates</h2>
 <ul class="history-list">
 <li class="history-group">
+<span class="history-date ui-font">2026.11.15</span>
+<ul class="history-entries">
+<li class="history-text" data-news="2026-11-15T20:46">日記（2026.11.15）を追加しました。</li>
+</ul>
+</li>
+<li class="history-group">
 <span class="history-date ui-font">2026.11.12</span>
 <ul class="history-entries">
 <li class="history-text" data-news="2026-11-12T21:53">日記（2026.11.12）を追加しました。</li>
@@ -2859,15 +2865,6 @@
 <li class="history-text">全文検索（Search）を追加しました。本文と題名から、ことばで探せます。</li>
 </ul>
 </li>
-<li class="history-group">
-<span class="history-date ui-font">2026.10.16</span>
-<ul class="history-entries">
-<li class="history-text">読書ページに「縦書きで読む」ボタンを追加し、縦書きのページ送りで読めるようにしました。</li>
-<li class="history-text">栞（しおり）機能を追加しました。</li>
-<li class="history-text">読書ページで、文字サイズと明暗（ライト／ダーク）を切り替えられるようにしました。</li>
-<li class="history-text">日記の一覧に、本文の書き出しを表示するようにしました。</li>
-</ul>
-</li>
 </ul>
 <a href="#/updates" data-nav class="hub-updates-more ui-font">すべての更新履歴を見る ▸</a>
 </div>
@@ -2877,6 +2874,12 @@
 <p class="eyebrow ui-font">Updates</p>
 <h1 class="page-title">更新履歴</h1>
 <ul class="history-list">
+<li class="history-group">
+<span class="history-date ui-font">2026.11.15</span>
+<ul class="history-entries">
+<li class="history-text" data-news="2026-11-15T20:46">日記（2026.11.15）を追加しました。</li>
+</ul>
+</li>
 <li class="history-group">
 <span class="history-date ui-font">2026.11.12</span>
 <ul class="history-entries">
@@ -16134,6 +16137,12 @@
 <h2 class="diary-group-heading ui-font">2026年11月</h2>
 <ul class="diary-list">
 <li class="diary-entry">
+<a href="#/diary/2026-11-15" data-nav class="diary-link">
+<span class="diary-date ui-font">2026.11.15</span>
+<span class="diary-excerpt">なにかを読み、なにかを感じること、なにかを考えることは受動的なおこないなのか、それとも能動的なおこないなのか、ということを考える。</span>
+</a>
+</li>
+<li class="diary-entry">
 <a href="#/diary/2026-11-12" data-nav class="diary-link">
 <span class="diary-date ui-font">2026.11.12</span>
 <span class="diary-excerpt">けっきょく、身動きひとつとれないのは、外的要因が原因なのか、どうなんだ？</span>
@@ -16629,6 +16638,20 @@
 </article>
 <nav class="diary-pager" aria-label="前後の日記">
 <a href="#/diary/2026-11-11" data-nav class="diary-pager-cell is-prev ui-font"><span class="diary-pager-label">前の日記</span><span class="diary-pager-date">2026.11.11</span></a>
+<a href="#/diary/2026-11-15" data-nav class="diary-pager-cell is-next ui-font"><span class="diary-pager-label">次の日記</span><span class="diary-pager-date">2026.11.15</span></a>
+</nav>
+</section>
+
+<section id="view-diary-2026-11-15" class="view" hidden>
+<a href="#/diary" data-nav class="back-link ui-font">◂ Back to Diary</a>
+<article class="diary-post">
+<header class="diary-post-header">
+<p class="diary-post-date ui-font">2026.11.15</p>
+</header>
+<div class="diary-post-body" data-content-src="content/diary_paragraphs_2026-11-15.html">読み込み中…</div>
+</article>
+<nav class="diary-pager" aria-label="前後の日記">
+<a href="#/diary/2026-11-12" data-nav class="diary-pager-cell is-prev ui-font"><span class="diary-pager-label">前の日記</span><span class="diary-pager-date">2026.11.12</span></a>
 <span class="diary-pager-cell is-next is-empty"></span>
 </nav>
 </section>
@@ -17571,6 +17594,7 @@
       '/diary/2026-10-28': { id: 'view-diary-2026-10-28', nav: '/diary', entrance: false },
       '/diary/2026-11-11': { id: 'view-diary-2026-11-11', nav: '/diary', entrance: false },
       '/diary/2026-11-12': { id: 'view-diary-2026-11-12', nav: '/diary', entrance: false },
+      '/diary/2026-11-15': { id: 'view-diary-2026-11-15', nav: '/diary', entrance: false },
       '/search': { id: 'view-search', nav: '/search', entrance: false },
       '/info': { id: 'view-info', nav: '/info', entrance: false },
       '/about': { id: 'view-info', nav: '/info', entrance: false },
@@ -18126,7 +18150,7 @@
     // 新しい作品・日記を追加したときだけ、トップに1行、ナビに点、更新履歴に NEW を出す。
     // 判定はすべて読者のブラウザの中。localStorage には「どこまで見たか」の日時だけを持ち、外へは何も送らない。
     // 初めて来た人には何も出さない(その時点を「見た」ことにする)。NEWS = {base, items:[[種別,日時],…]} は build_site.py が差し込む。
-    var NEWS = /*SITE_NEWS_BEGIN*/{"base":"2026-10-20T00:54","items":[["diary","2026-10-20T20:45"],["diary","2026-10-28T19:54"],["diary","2026-11-11T21:46"],["diary","2026-11-12T21:53"]]}/*SITE_NEWS_END*/;
+    var NEWS = /*SITE_NEWS_BEGIN*/{"base":"2026-10-20T00:54","items":[["diary","2026-10-20T20:45"],["diary","2026-10-28T19:54"],["diary","2026-11-11T21:46"],["diary","2026-11-12T21:53"],["diary","2026-11-15T20:46"]]}/*SITE_NEWS_END*/;
     var NEWS_KEY = 'hakoniwa:news:v1';
     function applyNews(path, match) {
       if (!NEWS) return;
